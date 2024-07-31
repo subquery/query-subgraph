@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "GRAPHILE_ENV=development postgraphile --config src/config/graphile.config.ts --allow-explain",
-    "start:dev": "tsc && node dist/index.js"
+    "start:dev": "GRAPHILE_ENV=development tsc && node dist/index.js"
 
   },
   "dependencies": {

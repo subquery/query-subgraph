@@ -17,4 +17,5 @@ export function startServer(){
     });
 
     server.listen(DEFAULT_PORT);
+    console.log(`Server listening on http://localhost:${DEFAULT_PORT}`);
 }
