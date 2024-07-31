@@ -6,13 +6,17 @@
   "author": "Tate <yongzhao.tan@onfinality.io>",
   "license": "MIT",
   "scripts": {
-    "dev": "GRAPHILE_ENV=development postgraphile --config src/graphile.config.ts --allow-explain"
+    "dev": "GRAPHILE_ENV=development postgraphile --config src/config/graphile.config.ts --allow-explain",
+    "start:dev": "tsc && node dist/index.js"
+
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "postgraphile": "^5.0.0-beta.28"
   },
   "devDependencies": {
-    "graphile": "^5.0.0-beta.26"
+    "graphile": "^5.0.0-beta.28",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   }
 }
