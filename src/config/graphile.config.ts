@@ -4,6 +4,7 @@ import "graphile-config";
 import "postgraphile";
 import { PostGraphileAmberPreset } from "postgraphile/presets/amber";
 import { makePgService } from "postgraphile/adaptors/pg";
+import { PgSimplifyInflectionPreset } from "@graphile/simplify-inflection";
 
 dotenv.config();
 
@@ -12,14 +13,19 @@ const pgConnection = util.format("postgres://%s:%s@%s:%s/%s", process.env.DB_USE
 const pgSchema: string[] = process.env.PG_SCHEMA ? process.env.PG_SCHEMA.split(",") : ["public"];
 
 export const preset: GraphileConfig.Preset = {
-  extends: [PostGraphileAmberPreset],
+  extends: [PostGraphileAmberPreset, PgSimplifyInflectionPreset],
   gather: { pgFakeConstraintsAutofixForeignKeyUniqueness: true },
   grafserv: { port: DEFAULT_PORT },
   pgServices: [makePgService({
-     // connectionString: "postgres://postgres:postgres@127.0.0.1:5432/postgres" ,schemas:["Polkadot-starter"]
     connectionString: pgConnection,
     schemas: pgSchema,
   })],
+  schema: {
+    defaultBehavior: "-connection +list -insert -update -delete",
+    pgOmitListSuffix: true
+  },
+  plugins: [],
+  disablePlugins: []
 };
 
 export default preset;

@@ -7,10 +7,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "GRAPHILE_ENV=development postgraphile --config src/config/graphile.config.ts --allow-explain",
-    "start:dev": "GRAPHILE_ENV=development tsc && node dist/index.js"
-
+    "start:dev": "tsc && DEBUG=graphile-build:warn GRAPHILE_ENV=development node dist/index.js"
   },
   "dependencies": {
+    "@graphile/simplify-inflection": "^8.0.0-beta.5",
     "dotenv": "^16.4.5",
     "postgraphile": "^5.0.0-beta.28"
   },
