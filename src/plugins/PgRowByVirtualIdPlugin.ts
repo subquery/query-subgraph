@@ -43,6 +43,7 @@ export const PgRowByVirtualIdPlugin: GraphileConfig.Plugin = {
     description:
         "Adds accessors for rows by their unique constraints (technically the @dataplan/pg resources' 'uniques' property)",
     version: "0.0.0",
+    after:[],
 
     inflection: {
         add: {
@@ -86,6 +87,7 @@ export const PgRowByVirtualIdPlugin: GraphileConfig.Plugin = {
                     if (resource.parameters) return false;
                     if (!resource.codec.attributes) return false;
                     if (!resource.uniques || resource.uniques.length < 1) return false;
+                    if (resource.codec.name === '_metadata') return false;
                     return true;
                 });
 
@@ -101,7 +103,7 @@ export const PgRowByVirtualIdPlugin: GraphileConfig.Plugin = {
                                         any,
                                         any
                                     >;
-                                    const uniqueKeys = unique.attributes as string[];
+                                    const uniqueKeys = (unique.attributes as string[]).filter(a=>a!=='_id');
                                     const fieldName = build.inflection.rowByUnique({
                                         unique,
                                         resource,

@@ -8,6 +8,9 @@ import { PgSimplifyInflectionPreset } from "@graphile/simplify-inflection";
 import historicalPlugins from "../plugins/historical";
 import {GetMetaPlugin} from "../plugins/GetMetadataPlugin";
 import {CreateSchemaSmartTagsPlugin} from "../plugins/smartTagsPlugin";
+import {PgRowByVirtualIdPlugin} from "../plugins/PgRowByVirtualIdPlugin";
+import {PostGraphileRelayPreset} from "postgraphile/presets/relay";
+import {PgIdToNodeIdPlugin} from "../plugins/PgIdToNodeIdPlugin";
 dotenv.config();
 
 export const DEFAULT_PORT = 3000;
@@ -17,7 +20,7 @@ const pgSchema: string[] = process.env.PG_SCHEMA ? process.env.PG_SCHEMA.split("
 const SchemaSmartTagsPlugin = CreateSchemaSmartTagsPlugin(pgSchema[0])
 export const preset: GraphileConfig.Preset = {
   extends: [PostGraphileAmberPreset, PgSimplifyInflectionPreset],
-  gather: { pgFakeConstraintsAutofixForeignKeyUniqueness: true },
+  // gather: { pgFakeConstraintsAutofixForeignKeyUniqueness: true },
   grafserv: { port: DEFAULT_PORT },
   pgServices: [makePgService({
     connectionString: pgConnection,
@@ -30,8 +33,8 @@ export const preset: GraphileConfig.Preset = {
     defaultBehavior: "-connection +list -insert -update -delete",
     pgOmitListSuffix: true
   },
-  plugins: [SchemaSmartTagsPlugin,...historicalPlugins,GetMetaPlugin],
-  disablePlugins: ["PgConditionCustomFieldsPlugin"]
+  plugins: [SchemaSmartTagsPlugin,...historicalPlugins,GetMetaPlugin,PgRowByVirtualIdPlugin,PgIdToNodeIdPlugin],
+  disablePlugins: ["PgConditionCustomFieldsPlugin","PgRowByUniquePlugin"]
 };
 
 export default preset;
