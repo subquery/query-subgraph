@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@graphile/simplify-inflection": "^8.0.0-beta.5",
+    "@types/yargs": "^17.0.33",
     "dotenv": "^16.4.5",
-    "postgraphile": "^5.0.0-beta.28"
+    "postgraphile": "^5.0.0-beta.28",
+    "yargs": "latest"
   },
   "devDependencies": {
     "graphile": "^5.0.0-beta.28",
