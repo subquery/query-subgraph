@@ -1,7 +1,6 @@
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import {PgEntity,PgClass,PgConstraint,PgAttribute} from 'pg-introspection';
 import {SQL} from 'pg-sql2';
 import {GraphileBuild} from "graphile-build";
 
