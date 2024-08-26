@@ -9,11 +9,14 @@ import { PostGraphileAmberPreset } from "postgraphile/presets/amber";
 import { makePgService } from "postgraphile/adaptors/pg";
 import { PgSimplifyInflectionPreset } from "@graphile/simplify-inflection";
 import historicalPlugins from "../plugins/historical";
-import {CreateMetadataPlugin} from "../plugins/GetMetadataPlugin";
-import {CreateSchemaSmartTagsPlugin} from "../plugins/smartTagsPlugin";
-import {PgRowByVirtualIdPlugin} from "../plugins/PgRowByVirtualIdPlugin";
-import {PgIdToNodeIdPlugin} from "../plugins/PgIdToNodeIdPlugin";
-import {argv} from "./yargs";
+import { CreateMetadataPlugin } from "../plugins/GetMetadataPlugin";
+import { CreateSchemaSmartTagsPlugin } from "../plugins/smartTagsPlugin";
+import { PgRowByVirtualIdPlugin } from "../plugins/PgRowByVirtualIdPlugin";
+import { PgIdToNodeIdPlugin } from "../plugins/PgIdToNodeIdPlugin";
+import { argv } from "./yargs";
+import { ArgFilterLogicalOperatorsPlugin } from "../plugins/filter/ArgFilterLogicalOperatorsPlugin";
+import { ArgFilterPlugin } from "../plugins/filter/ArgFilterPlugin";
+import { ArgFilterAttributesPlugin } from "../plugins/filter/ArgFilterAttributesPlugin";
 dotenv.config();
 
 export const DEFAULT_PORT = 3000;
@@ -29,10 +32,10 @@ export const preset: GraphileConfig.Preset = {
     connectionString: pgConnection,
     schemas: pgSchema,
   })],
-  grafast:{
+  grafast: {
     explain: Boolean(argv('query-explain')), //GOOD to have in dev env
-    context:{
-      pgSettings:{
+    context: {
+      pgSettings: {
         statement_timeout: String(argv('query-timeout')),
       }
     }
@@ -41,8 +44,11 @@ export const preset: GraphileConfig.Preset = {
     defaultBehavior: "-connection +list -insert -update -delete",
     pgOmitListSuffix: true
   },
-  plugins: [SchemaSmartTagsPlugin,...historicalPlugins,metadataPlugin,PgRowByVirtualIdPlugin,PgIdToNodeIdPlugin],
-  disablePlugins: ["PgConditionCustomFieldsPlugin","PgRowByUniquePlugin"]
+  // plugins: [SchemaSmartTagsPlugin,...historicalPlugins,metadataPlugin,PgRowByVirtualIdPlugin,PgIdToNodeIdPlugin],
+  // TODO To resolve plugin conflicts
+  plugins: [ArgFilterPlugin, ArgFilterAttributesPlugin, ArgFilterLogicalOperatorsPlugin],
+
+  disablePlugins: ["PgConditionCustomFieldsPlugin", "PgRowByUniquePlugin"]
 };
 
 export default preset;
