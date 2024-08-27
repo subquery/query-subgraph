@@ -1,11 +1,13 @@
-import type { PgSelectStep, PgCodec } from "@dataplan/pg";
-import type { ConnectionStep, FieldArgs } from "grafast";
+import type { PgSelectStep, PgCodec, PgSelectSingleStep, PgSelectParsedCursorStep } from "@dataplan/pg";
+import type { ConnectionStep, FieldArgs, __TrackedValueStep } from "grafast";
 import {
+  GraphQLSchema,
   GraphQLInputType,
   GraphQLOutputType,
   GraphQLNamedType,
   ThunkObjMap,
-  GraphQLEnumValueConfig
+  GraphQLEnumValueConfig,
+
 } from "graphql";
 
 const OrderDirectionFieldName = 'OrderDirection'
@@ -42,19 +44,19 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
             for (const field of Object.keys(pgCodec.attributes)) {
               if (field.startsWith('_')) continue;
 
-              orderValues[field] = { value: field }
+              orderValues[inflection.camelCase(field)] = { value: field }
             }
 
             build.registerEnumType(
               tableOrderByTypeName,
-              {},
+              { isPgRowSortEnum: true },
               () => ({
                 name: tableOrderByTypeName,
                 values: orderValues,
                 description: `order by Enum types.`,
-                // applyPlan: EXPORTABLE(() => (a, b, c) => {
-
-                // }, [])
+                args: {
+                  tableOrderByTypeName
+                }
               }),
               "OrderByAttributesPlugin"
             );
@@ -63,17 +65,17 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
 
           build.registerEnumType(
             OrderDirectionFieldName,
-            {},
+            { isPgRowSortEnum: true },
             () => ({
               name: OrderDirectionFieldName,
               values: {
-                asc: { value: 'asc' },
-                desc: { value: 'desc' },
+                asc: { value: 'ASC' },
+                desc: { value: 'DESC' },
               },
               description: `order by direction Enum types.`,
-              // applyPlan: EXPORTABLE(() => (a, b, c) => {
-
-              // }, [])
+              args: {
+                OrderDirectionFieldName
+              }
             }),
             "OrderByAttributesPlugin"
           );
@@ -81,6 +83,7 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
           return _;
         },
       },
+
 
       GraphQLObjectType_fields_field_args(args, build, context) {
         const {
@@ -137,21 +140,13 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
               applyPlan: EXPORTABLE(
                 (attributeCodec) =>
                   function (
-                    _: any,
-                    $connection: ConnectionStep<
-                      any,
-                      any,
-                      any,
-                      PgSelectStep
-                    >,
-                    fieldArgs: FieldArgs
+                    $parent: any,
+                    $pgSelect: PgSelectStep,
+                    fieldArgs: any
                   ) {
-                    const $pgSelect = $connection.getSubplan();
-                    $pgSelect.extensions.pgOrderByAttribute = {
-                      codec: attributeCodec,
-                    };
-                    fieldArgs.apply($pgSelect);
+                    $parent._orderField = fieldArgs.getRaw().eval()
                   },
+
                 [attributeCodec]
               ),
             },
@@ -159,9 +154,27 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
               description: "Specifies the direction in which to order the results.",
               type: build.getTypeByName(OrderDirectionFieldName),
               autoApplyAfterParentPlan: true,
-              // applyPlan: EXPORTABLE(() => function (a, ba, ca) {
-              //   return a
-              // }, [])
+              applyPlan: EXPORTABLE(
+                () =>
+                  function (
+                    $parent: any,
+                    $pgSelect: PgSelectStep,
+                    fieldArgs: any
+                  ) {
+                    const orderField = $parent._orderField
+                    const orderDirection = fieldArgs.getRaw()
+
+                    const $orderBy = $pgSelect.orderBy({
+                      attribute: orderField,
+                      direction: orderDirection.eval(),
+                    });
+
+                    fieldArgs.apply($orderBy);
+                  },
+
+                []
+              ),
+
             },
           },
           `Adding orderBy argument to ${orderByTypeName}`
