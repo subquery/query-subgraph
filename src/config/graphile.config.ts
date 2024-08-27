@@ -17,6 +17,8 @@ import { argv } from "./yargs";
 import { ArgFilterLogicalOperatorsPlugin } from "../plugins/filter/ArgFilterLogicalOperatorsPlugin";
 import { ArgFilterPlugin } from "../plugins/filter/ArgFilterPlugin";
 import { ArgFilterAttributesPlugin } from "../plugins/filter/ArgFilterAttributesPlugin";
+import { OrderByAttributesPlugin } from "../plugins/filter/OrderByAttributesPlugin";
+
 dotenv.config();
 
 export const DEFAULT_PORT = 3000;
@@ -41,13 +43,20 @@ export const preset: GraphileConfig.Preset = {
     }
   },
   schema: {
-    defaultBehavior: "-connection +list -insert -update -delete",
+    defaultBehavior: "-connection +list -insert -update -delete -filter -order",
     pgOmitListSuffix: true
   },
-  // plugins: [SchemaSmartTagsPlugin,...historicalPlugins,metadataPlugin,PgRowByVirtualIdPlugin,PgIdToNodeIdPlugin],
-  // TODO To resolve plugin conflicts
-  plugins: [ArgFilterPlugin, ArgFilterAttributesPlugin, ArgFilterLogicalOperatorsPlugin],
-
+  plugins: [
+    SchemaSmartTagsPlugin,
+    ...historicalPlugins,
+    metadataPlugin,
+    PgRowByVirtualIdPlugin,
+    PgIdToNodeIdPlugin,
+    ArgFilterPlugin,
+    ArgFilterAttributesPlugin,
+    ArgFilterLogicalOperatorsPlugin,
+    OrderByAttributesPlugin
+  ],
   disablePlugins: ["PgConditionCustomFieldsPlugin", "PgRowByUniquePlugin"]
 };
 

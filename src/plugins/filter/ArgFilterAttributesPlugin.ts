@@ -1,4 +1,4 @@
-import type { PgConditionStep  } from "@dataplan/pg";
+import type { PgConditionStep } from "@dataplan/pg";
 import { getFieldDefine, getSupportOperators, Operators } from "./utils";
 
 export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
@@ -7,6 +7,22 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
 
   schema: {
     hooks: {
+      build(build) {
+        build.escapeLikeWildcards = build.EXPORTABLE(
+          () =>
+            function (input) {
+              if ("string" !== typeof input) {
+                throw new Error(
+                  "Non-string input was provided to escapeLikeWildcards"
+                );
+              } else {
+                return input.split("%").join("\\%").split("_").join("\\_");
+              }
+            },
+          []
+        );
+        return build
+      },
       GraphQLInputObjectType_fields(args, build, context) {
         const { sql, EXPORTABLE, escapeLikeWildcards } = build
         const { fieldWithHooks, scope: { isPgConnectionFilter, pgCodec } } = context
@@ -53,7 +69,7 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
                   } else if (operator === Operators.ENDS_WITH_NOCASE || operator === Operators.NOT_ENDS_WITH_NOCASE) {
                     inputValue = `%${inputValue}`
                   }
-                  
+
                   const tableAlias = $where.alias
                   const sqlIdentifier = sql.identifier(field)
                   const sqlValue = build.sql.value(inputValue)

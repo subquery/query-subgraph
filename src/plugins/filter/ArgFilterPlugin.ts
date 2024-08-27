@@ -6,13 +6,6 @@ import {
   GraphQLNamedType,
 } from "graphql";
 
-declare global {
-  namespace GraphileBuild {
-    interface Inflection {
-      tableWhereType(this: Inflection, typeName: string): string;
-    }
-  }
-}
 
 export const ArgFilterPlugin: GraphileConfig.Plugin = {
   name: "ArgFilterPlugin",

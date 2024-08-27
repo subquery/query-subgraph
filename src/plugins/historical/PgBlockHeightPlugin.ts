@@ -118,18 +118,19 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                     return args;
                 }
 
-                const desiredBehavior = fieldBehaviorScope
-                    ? `${fieldBehaviorScope}:filter`
-                    : `filter`;
-                if (
-                    pgResource
-                        ? !build.behavior.pgResourceMatches(pgResource, desiredBehavior)
-                        : codec
-                            ? !build.behavior.pgCodecMatches(codec, desiredBehavior)
-                            : true
-                ) {
-                    return args;
-                }
+                // Need to get rid of the control of the filter behavior
+                // const desiredBehavior = fieldBehaviorScope
+                //     ? `${fieldBehaviorScope}:filter`
+                //     : `filter`;
+                // if (
+                //     pgResource
+                //         ? !build.behavior.pgResourceMatches(pgResource, desiredBehavior)
+                //         : codec
+                //             ? !build.behavior.pgCodecMatches(codec, desiredBehavior)
+                //             : true
+                // ) {
+                //     return args;
+                // }
 
 
                 if (scope.isPgRowByUniqueConstraintField || scope.isPgFieldConnection){
@@ -158,7 +159,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                                 "A block height to be used in determining which block range values should be returned",
                                 "arg",
                             ),
-                            defaultValue: { number : 9223372036854775807},
+                            // defaultValue: { number : 9223372036854775807},
                             autoApplyAfterParentPlan: true,
                             type: tableBlockHeightType,
 
