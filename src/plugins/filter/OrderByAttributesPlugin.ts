@@ -162,6 +162,10 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
                     fieldArgs: any
                   ) {
                     const orderField = $parent._orderField
+                    if (!orderField) {
+                      throw new Error('orderBy field is required')
+                    }
+
                     const orderDirection = fieldArgs.getRaw()
 
                     const $orderBy = $pgSelect.orderBy({

@@ -5,6 +5,7 @@ import {
   GraphQLList,
   GraphQLString
 } from "graphql";
+import type { FieldArgs } from "grafast";
 
 export enum Operators {
   EQUAL_TO = "",
@@ -93,10 +94,71 @@ export function getFieldDefine(build: GraphileBuild.Build, fieldName: string, fi
   const operatorFieldName = operator === Operators.EQUAL_TO ? inflection.camelCase(fieldName) : `${inflection.camelCase(fieldName)}_${operator}`;;
 
   const graphqlType = ConvertGraphqlType(fieldType)
-  if (!graphqlType) return 
+  if (!graphqlType) return
 
   return {
     operatorFieldName,
     type: ![Operators.IN, Operators.NOT_IN].includes(operator) ? graphqlType : new GraphQLList(graphqlType),
   }
+}
+
+// TODO: rename. (Checks that the arguments aren't null/empty.)
+export function makeAssertAllowed(build: GraphileBuild.Build) {
+  const { EXPORTABLE } = build;
+
+  const connectionFilterAllowNullInput = false
+  const connectionFilterAllowEmptyObjectInput = false
+
+  const assertAllowed = EXPORTABLE(
+    (connectionFilterAllowEmptyObjectInput, connectionFilterAllowNullInput) =>
+      function (fieldArgs: FieldArgs, mode: "list" | "object" | "scalar") {
+        const $raw = fieldArgs.getRaw();
+        if (
+          mode === "object" &&
+          !connectionFilterAllowEmptyObjectInput &&
+          "evalIsEmpty" in $raw &&
+          $raw.evalIsEmpty()
+        ) {
+          throw Object.assign(
+            new Error("Empty objects are forbidden in filter argument input."),
+            {
+              //TODO: mark this error as safe
+            }
+          );
+        }
+        if (
+          mode === "list" &&
+          !connectionFilterAllowEmptyObjectInput &&
+          "evalLength" in $raw
+        ) {
+          const l = $raw.evalLength();
+          if (l != null) {
+            for (let i = 0; i < l; i++) {
+              const $entry = $raw.at(i);
+              if ("evalIsEmpty" in $entry && $entry.evalIsEmpty()) {
+                throw Object.assign(
+                  new Error(
+                    "Empty objects are forbidden in filter argument input."
+                  ),
+                  {
+                    //TODO: mark this error as safe
+                  }
+                );
+              }
+            }
+          }
+        }
+        // For all modes, check null
+        if (!connectionFilterAllowNullInput && $raw.evalIs(null)) {
+          throw Object.assign(
+            new Error("Null literals are forbidden in filter argument input."),
+            {
+              //TODO: mark this error as safe
+            }
+          );
+        }
+      },
+    [connectionFilterAllowEmptyObjectInput, connectionFilterAllowNullInput]
+  );
+  return assertAllowed;
 }

@@ -29,6 +29,19 @@ declare global {
     interface Inflection {
       tableWhereType(this: Inflection, typeName: string): string;
       tableOrderByType(this: Inflection, typeName: string): string;
+      filterManyType(
+        this: Inflection,
+        table: PgCodec<any, any, any, any, any, any, any>,
+        foreignTable: PgResource<any, any, any, any>
+      ): string;
+      filterSingleRelationByKeysBackwardsFieldName(
+        this: Inflection,
+        fieldName: string
+      ): string;
+      filterManyRelationByKeysFieldName(
+        this: Inflection,
+        fieldName: string
+      ): string;
     }
     interface ScopeInputObject {
       isPgConnectionFilter?: boolean;
@@ -45,8 +58,8 @@ declare global {
 //       fieldInputType?: GraphQLInputType;
 //       rangeElementInputType?: GraphQLInputType;
 //       domainBaseType?: GraphQLOutputType;
-//       foreignTable?: PgResource<any, any, any, any>;
-//       isPgConnectionFilterMany?: boolean;
+      foreignTable?: PgResource<any, any, any, any>;
+      isPgConnectionFilterMany?: boolean;
       isOrderByField?: boolean;
 
     }
@@ -64,7 +77,7 @@ declare global {
       escapeLikeWildcards(input: unknown): string;
     }
     interface ScopeInputObjectFieldsField {
-//       isPgConnectionFilterField?: boolean;
+      isPgConnectionFilterField?: boolean;
 //       isPgConnectionFilterManyField?: boolean;
       isPgConnectionFilterOperatorLogical?: boolean;
 //       isPgConnectionFilterOperator?: boolean;
