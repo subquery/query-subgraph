@@ -9,7 +9,7 @@ import {
 
 export const ArgFilterPlugin: GraphileConfig.Plugin = {
   name: "ArgFilterPlugin",
-  version: "0.0.1",
+  version: "1.0.0",
 
   inflection: {
     add: {

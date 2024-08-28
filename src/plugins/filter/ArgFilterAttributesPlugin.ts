@@ -3,7 +3,7 @@ import { getFieldDefine, getSupportOperators, Operators } from "./utils";
 
 export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
   name: "ArgFilterAttributesPlugin",
-  version: "0.0.1",
+  version: "1.0.0",
 
   schema: {
     hooks: {

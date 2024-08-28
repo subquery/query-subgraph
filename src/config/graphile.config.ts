@@ -18,7 +18,7 @@ import { ArgFilterLogicalOperatorsPlugin } from "../plugins/filter/ArgFilterLogi
 import { ArgFilterPlugin } from "../plugins/filter/ArgFilterPlugin";
 import { ArgFilterAttributesPlugin } from "../plugins/filter/ArgFilterAttributesPlugin";
 import { OrderByAttributesPlugin } from "../plugins/filter/OrderByAttributesPlugin";
-import { OffsetToSkitPlugin } from "../plugins/OffsetToSkitPlugin";
+import { OffsetToSkipPlugin } from "../plugins/OffsetToSkipPlugin";
 import { ArgFilterBackwardRelationsPlugin } from "../plugins/filter/ArgFilterBackwardRelationsPlugin";
 
 dotenv.config();
@@ -57,9 +57,9 @@ export const preset: GraphileConfig.Preset = {
     ArgFilterPlugin,
     ArgFilterAttributesPlugin,
     ArgFilterLogicalOperatorsPlugin,
+    ArgFilterBackwardRelationsPlugin,
     OrderByAttributesPlugin,
-    OffsetToSkitPlugin,
-    ArgFilterBackwardRelationsPlugin
+    OffsetToSkipPlugin,
   ],
   disablePlugins: ["PgConditionCustomFieldsPlugin", "PgRowByUniquePlugin"]
 };
