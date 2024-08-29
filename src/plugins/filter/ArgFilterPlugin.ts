@@ -5,13 +5,11 @@ import {
   GraphQLOutputType,
   GraphQLNamedType,
 } from "graphql";
-import { makeRangeQuery } from "../historical/utils";
 
 
 export const ArgFilterPlugin: GraphileConfig.Plugin = {
   name: "ArgFilterPlugin",
   version: "1.0.0",
-
   inflection: {
     add: {
       tableWhereType(options, typeName) {
@@ -133,14 +131,6 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
                             codec: attributeCodec,
                           };
                         }
-
-                        if (_._blockHeightCondition) {
-                          const height = build.sql.fragment`${build.sql.value(_._blockHeightCondition.val.getRaw('number').eval())}::bigint`
-                          const alias = $pgSelect.alias;
-
-                          const rangeQuery = makeRangeQuery(alias, height, build.sql)
-                          $where.where(rangeQuery);
-                        }
                         fieldArgs.apply($where);
                       },
                     [attributeCodec]
@@ -161,14 +151,6 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
                             codec: attributeCodec,
                           };
                         }
-                        if (_._blockHeightCondition) {
-                          const height = build.sql.fragment`${build.sql.value(_._blockHeightCondition.val.getRaw('number').eval())}::bigint`
-                          const alias = $pgSelect.alias;
-
-                          const rangeQuery = makeRangeQuery(alias, height, build.sql)
-                          $where.where(rangeQuery);
-                        }
-
                         fieldArgs.apply($where);
                       },
                     [attributeCodec]
