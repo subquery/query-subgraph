@@ -6,9 +6,9 @@ import type {
     PgCodecWithAttributes,
     PgSelectStep
 } from "@dataplan/pg";
-import {GraphQLFloat} from "graphql";
+import { GraphQLFloat } from "graphql";
 import { GraphQLInputObjectType } from "grafast/graphql";
-import {makeRangeQuery} from "./utils";
+import { makeRangeQuery } from "./utils";
 
 declare global {
     namespace GraphileBuild {
@@ -29,7 +29,6 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
     description: "Adds the 'blockHeight' argument to connections and lists",
 
     version: "0.0.1",
-
     inflection: {
         add: {
             blockHeightType(options, typeName) {
@@ -38,7 +37,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
         },
     },
 
-    schema:{
+    schema: {
         entityBehavior: {
             pgCodec: "select filter",
             pgResource: {
@@ -49,7 +48,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                 },
             },
         },
-        hooks:{
+        hooks: {
             // https://postgraphile.org/postgraphile/next/migrating-from-v4/migrating-custom-plugins/#example
             // register the new block height type
             init(_, build) {
@@ -78,7 +77,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                                     `A blockHeight to be used against \`${tableTypeName}\` object types.`,
                                     "type",
                                 ),
-                                fields:{
+                                fields: {
                                     number: { type: GraphQLFloat },
                                 }
                             }),
@@ -133,13 +132,13 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                 // }
 
 
-                if (scope.isPgRowByUniqueConstraintField || scope.isPgFieldConnection){
+                if (scope.isPgRowByUniqueConstraintField || scope.isPgFieldConnection) {
                     return args;
                 }
 
                 const tableTypeName = build.inflection.tableType(codec);
                 // Temp implementation to skip metadata tables, wait omit metadata plugin to be implemented
-                if(tableTypeName === '_Metadatum' || tableTypeName === '_metadata' || tableTypeName === '_meta'){
+                if (tableTypeName === '_Metadatum' || tableTypeName === '_metadata' || tableTypeName === '_meta') {
                     return args
                 }
                 const tableBlockHeightTypeName =
@@ -154,25 +153,26 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                 }
 
                 return build.extend(args, {
-                        block: {
-                            description: build.wrapDescription(
-                                "A block height to be used in determining which block range values should be returned",
-                                "arg",
-                            ),
-                            // defaultValue: { number : 9223372036854775807},
-                            autoApplyAfterParentPlan: true,
-                            type: tableBlockHeightType,
+                    block: {
+                        description: build.wrapDescription(
+                            "A block height to be used in determining which block range values should be returned",
+                            "arg",
+                        ),
+                        // defaultValue: { number : 9223372036854775807},
+                        autoApplyAfterParentPlan: true,
+                        type: tableBlockHeightType,
 
-                            applyPlan:(_,$pgSelect: PgSelectStep,val) => {
-                                const height = build.sql.fragment`${build.sql.value(val.getRaw('number').eval())}::bigint`
-                                const alias = $pgSelect.alias;
+                        applyPlan: (_, $pgSelect: PgSelectStep, val) => {
+                            _._blockHeightCondition = { val };
+                            const height = build.sql.fragment`${build.sql.value(val.getRaw('number').eval())}::bigint`
+                            const alias = $pgSelect.alias;
 
-                                const rangeQuery = makeRangeQuery(alias,height,build.sql)
-                                $pgSelect.where(rangeQuery);
-                            }
+                            const rangeQuery = makeRangeQuery(alias, height, build.sql)
+                            $pgSelect.where(rangeQuery);
+                        }
 
-                        },
                     },
+                },
                     `Adding 'blockRange' argument to args`,
                 )
 
