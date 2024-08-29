@@ -190,7 +190,6 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                             "A block height to be used in determining which block range values should be returned",
                             "arg",
                         ),
-                        // defaultValue: { number : 9223372036854775807},
                         autoApplyAfterParentPlan: true,
                         type: tableBlockHeightType,
 

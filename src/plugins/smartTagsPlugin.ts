@@ -16,6 +16,7 @@ export function CreateSchemaSmartTagsPlugin(schema:string){
         return (
             !/^_metadata$/.test(klass.relname) && klass.relkind === 'r' && klass.relname !== '_poi'
             // && klass.getNamespace()?.nspname === schema
+            // We want this limit to current schema, but this seems will break rest of code
         );
       },
       tags: {

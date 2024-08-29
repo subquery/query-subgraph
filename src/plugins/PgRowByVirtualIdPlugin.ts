@@ -22,7 +22,6 @@ function tagToString(
     return Array.isArray(str) ? str.join("\n") : str === true ? " " : str;
 }
 
-//TODO, not completed, need to align as v1
 declare global {
     namespace GraphileBuild {
         interface Inflection {
