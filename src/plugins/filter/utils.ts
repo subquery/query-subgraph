@@ -30,7 +30,7 @@ export enum Operators {
   NOT_ENDS_WITH_NOCASE = "not_ends_with_nocase"
 }
 
-// refer @datallan/pg/dist/codecs.js:686
+// refer "version": "0.0.1-beta.24"  @datallan/pg/dist/codecs.js:686
 export function getSupportOperators(fieldType: string): Operators[] {
   switch (fieldType) {
     case 'bool':

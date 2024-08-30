@@ -1,3 +1,4 @@
+// refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterAttributesPlugin.ts 
 import type { PgConditionStep } from "@dataplan/pg";
 import { getFieldDefine, getSupportOperators, Operators } from "./utils";
 
@@ -56,64 +57,76 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
                   }
 
                   let inputValue = $input.eval()
-                  if (operator === Operators.CONTAINS || operator === Operators.NOT_CONTAINS) {
-                    inputValue = `%${inputValue}%`
-                  } else if (operator === Operators.STARTS_WITH || operator === Operators.NOT_STARTS_WITH) {
-                    inputValue = `${inputValue}%`
-                  } else if (operator === Operators.ENDS_WITH || operator === Operators.NOT_ENDS_WITH) {
-                    inputValue = `%${inputValue}`
-                  } else if (operator === Operators.CONTAINS_NOCASE || operator === Operators.NOT_CONTAINS_NOCASE) {
-                    inputValue = `%${inputValue}%`
-                  } else if (operator === Operators.STARTS_WITH_NOCASE || operator === Operators.NOT_STARTS_WITH_NOCASE) {
-                    inputValue = `${inputValue}%`
-                  } else if (operator === Operators.ENDS_WITH_NOCASE || operator === Operators.NOT_ENDS_WITH_NOCASE) {
-                    inputValue = `%${inputValue}`
+                  switch (operator) {
+                    case Operators.CONTAINS:
+                    case Operators.NOT_CONTAINS:
+                    case Operators.CONTAINS_NOCASE:
+                    case Operators.NOT_CONTAINS_NOCASE:
+                      inputValue = `%${inputValue}%`;
+                      break;
+                    case Operators.STARTS_WITH:
+                    case Operators.NOT_STARTS_WITH:
+                    case Operators.STARTS_WITH_NOCASE:
+                    case Operators.NOT_STARTS_WITH_NOCASE:
+                      inputValue = `${inputValue}%`;
+                      break;
+                    case Operators.ENDS_WITH:
+                    case Operators.NOT_ENDS_WITH:
+                    case Operators.ENDS_WITH_NOCASE:
+                    case Operators.NOT_ENDS_WITH_NOCASE:
+                      inputValue = `%${inputValue}`;
+                      break;
                   }
 
                   const tableAlias = $where.alias
                   const sqlIdentifier = sql.identifier(field)
                   const sqlValue = build.sql.value(inputValue)
 
-                  if (operator === Operators.EQUAL_TO) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} = ${sqlValue}`);
-                  } else if (operator === Operators.NOT) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} <> ${sqlValue}`);
-                  } else if (operator === Operators.GT) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} > ${sqlValue}`);
-                  } else if (operator === Operators.GTE) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} >= ${sqlValue}`);
-                  } else if (operator === Operators.LT) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} < ${sqlValue}`);
-                  } else if (operator === Operators.LTE) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} <= ${sqlValue}`);
-                  } else if (operator === Operators.IN) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} = ANY(${sqlValue})`);
-                  } else if (operator === Operators.NOT_IN) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} <> ALL(${sqlValue})`);
-                  } else if (operator === Operators.CONTAINS) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} LIKE ${sqlValue}`);
-                  } else if (operator === Operators.NOT_CONTAINS) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} NOT LIKE ${sqlValue}`);
-                  } else if (operator === Operators.STARTS_WITH) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} LIKE ${sqlValue}`);
-                  } else if (operator === Operators.NOT_STARTS_WITH) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} NOT LIKE ${sqlValue}`);
-                  } else if (operator === Operators.ENDS_WITH) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} LIKE ${sqlValue}`);
-                  } else if (operator === Operators.NOT_ENDS_WITH) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} NOT LIKE ${sqlValue}`);
-                  } else if (operator === Operators.CONTAINS_NOCASE) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} ILIKE ${sqlValue}`);
-                  } else if (operator === Operators.NOT_CONTAINS_NOCASE) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} NOT ILIKE ${sqlValue}`);
-                  } else if (operator === Operators.STARTS_WITH_NOCASE) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} ILIKE ${sqlValue}`);
-                  } else if (operator === Operators.NOT_STARTS_WITH_NOCASE) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} NOT ILIKE ${sqlValue}`);
-                  } else if (operator === Operators.ENDS_WITH_NOCASE) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} ILIKE ${sqlValue}`);
-                  } else if (operator === Operators.NOT_ENDS_WITH_NOCASE) {
-                    $where.where(sql`${tableAlias}.${sqlIdentifier} NOT ILIKE ${sqlValue}`);
+                  switch (operator) {
+                    case Operators.EQUAL_TO:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} = ${sqlValue}`);
+                      break;
+                    case Operators.NOT:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} <> ${sqlValue}`);
+                      break;
+                    case Operators.GT:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} > ${sqlValue}`);
+                      break;
+                    case Operators.GTE:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} >= ${sqlValue}`);
+                      break;
+                    case Operators.LT:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} < ${sqlValue}`);
+                      break;
+                    case Operators.LTE:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} <= ${sqlValue}`);
+                      break;
+                    case Operators.IN:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} = ANY(${sqlValue})`);
+                      break;
+                    case Operators.NOT_IN:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} <> ALL(${sqlValue})`);
+                      break;
+                    case Operators.CONTAINS:
+                    case Operators.STARTS_WITH:
+                    case Operators.ENDS_WITH:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} LIKE ${sqlValue}`);
+                      break;
+                    case Operators.NOT_CONTAINS:
+                    case Operators.NOT_STARTS_WITH:
+                    case Operators.NOT_ENDS_WITH:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} NOT LIKE ${sqlValue}`);
+                      break;
+                    case Operators.CONTAINS_NOCASE:
+                    case Operators.STARTS_WITH_NOCASE:
+                    case Operators.ENDS_WITH_NOCASE:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} ILIKE ${sqlValue}`);
+                      break;
+                    case Operators.NOT_CONTAINS_NOCASE:
+                    case Operators.NOT_STARTS_WITH_NOCASE:
+                    case Operators.NOT_ENDS_WITH_NOCASE:
+                      $where.where(sql`${tableAlias}.${sqlIdentifier} NOT ILIKE ${sqlValue}`);
+                      break;
                   }
                 }, [])
               })
