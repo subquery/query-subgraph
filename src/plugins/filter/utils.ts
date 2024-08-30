@@ -1,3 +1,7 @@
+// Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0
+
+import type { FieldArgs } from "grafast";
 import {
   GraphQLInputType,
   GraphQLBoolean,
@@ -5,7 +9,6 @@ import {
   GraphQLList,
   GraphQLString
 } from "graphql";
-import type { FieldArgs } from "grafast";
 
 export enum Operators {
   EQUAL_TO = "",
@@ -91,7 +94,7 @@ export function ConvertGraphqlType(fieldType: string): GraphQLInputType | undefi
 
 export function getFieldDefine(build: GraphileBuild.Build, fieldName: string, fieldType: string, operator: Operators) {
   const { inflection } = build
-  const operatorFieldName = operator === Operators.EQUAL_TO ? inflection.camelCase(fieldName) : `${inflection.camelCase(fieldName)}_${operator}`;;
+  const operatorFieldName = operator === Operators.EQUAL_TO ? inflection.camelCase(fieldName) : `${inflection.camelCase(fieldName)}_${operator}`;
 
   const graphqlType = ConvertGraphqlType(fieldType)
   if (!graphqlType) return
@@ -132,7 +135,7 @@ export function makeAssertAllowed(build: GraphileBuild.Build) {
           "evalLength" in $raw
         ) {
           const l = $raw.evalLength();
-          if (l != null) {
+          if (l !== null) {
             for (let i = 0; i < l; i++) {
               const $entry = $raw.at(i);
               if ("evalIsEmpty" in $entry && $entry.evalIsEmpty()) {

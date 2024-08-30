@@ -6,10 +6,9 @@ import type {
     PgCodecWithAttributes,
     PgSelectStep
 } from "@dataplan/pg";
-import { GraphQLFloat } from "graphql";
-import { GraphQLInputObjectType } from "grafast/graphql";
-import { makeRangeQuery } from "./utils";
+import { GraphQLFloat,GraphQLInputObjectType } from "graphql";
 import {SQL} from "pg-sql2";
+import { makeRangeQuery } from "./utils";
 
 declare global {
     namespace GraphileBuild {
@@ -25,7 +24,8 @@ declare global {
     }
 }
 
-// Temporarily store the block height condition from root args
+// TODO, Temporarily store the block height condition from root args
+// Revisit this issue once we have a better understanding.
 let _globalHeight:SQL;
 
 export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
@@ -97,7 +97,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                 callback: (field, build, context) => {
                     const { extend } = build;
                     const {
-                        scope: { isPgSingleRelationField,isPgManyRelationListField,isRootQuery },
+                        scope: { isPgManyRelationListField,isPgSingleRelationField,isRootQuery },
                     } = context;
 
                     if (! (isPgSingleRelationField ||isPgManyRelationListField)) {
@@ -114,6 +114,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                                         "arg",
                                     ),
                                     type: GraphQLFloat,
+                                    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
                                     defaultValue: 9223372036854775807,
                                     autoApplyAfterParentPlan: true,
                                     applyPlan: (_, $pgSelect: PgSelectStep, val) => {
@@ -138,13 +139,13 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
 
             // Apply block_range to top level entity
             GraphQLObjectType_fields_field_args: (args, build, context) => {
-                const { scope, Self } = context;
+                const { Self, scope } = context;
 
                 const {
                     isPgFieldSimpleCollection,
-                    pgFieldResource: pgResource,
+                    isRootQuery,
                     pgFieldCodec,
-                    isRootQuery
+                    pgFieldResource: pgResource
 
                 } = scope;
 

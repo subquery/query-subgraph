@@ -1,3 +1,6 @@
+// Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0
+
 import type {
   PgConditionStep,
   PgCodecRelation,
@@ -82,17 +85,17 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
       GraphQLInputObjectType_fields(inFields, build, context) {
         let fields = inFields;
         const {
+          EXPORTABLE,
           extend,
+          graphql: { GraphQLBoolean },
           inflection,
           sql,
-          graphql: { GraphQLBoolean },
-          EXPORTABLE,
         } = build;
         const {
           fieldWithHooks,
           scope: {
-            pgCodec,
             isPgConnectionFilter,
+            pgCodec,
           },
         } = context;
 

@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0
 
 import { createServer } from "node:http";
+import {postgraphile} from "postgraphile";
 import { grafserv } from "postgraphile/grafserv/node";
-import { pgl } from "./pgl.js";
+import {DEFAULT_PORT, preset} from "./config/index";
 import {argv} from "./config/yargs";
-import {DEFAULT_PORT} from "./config/index";
 
 const port = argv('port') ?? DEFAULT_PORT;
-
+const pgl = postgraphile(preset);
 export function startServer() {
     const serv = pgl.createServ(grafserv);
 

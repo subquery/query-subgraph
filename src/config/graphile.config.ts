@@ -1,25 +1,25 @@
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import dotenv from "dotenv";
 import util from "util";
 import "graphile-config";
 import "postgraphile";
-import { PostGraphileAmberPreset } from "postgraphile/presets/amber";
-import { makePgService } from "postgraphile/adaptors/pg";
 import { PgSimplifyInflectionPreset } from "@graphile/simplify-inflection";
-import historicalPlugins from "../plugins/historical";
-import { CreateMetadataPlugin } from "../plugins/GetMetadataPlugin";
-import { CreateSchemaSmartTagsPlugin } from "../plugins/smartTagsPlugin";
-import { PgRowByVirtualIdPlugin } from "../plugins/PgRowByVirtualIdPlugin";
-import { PgIdToNodeIdPlugin } from "../plugins/PgIdToNodeIdPlugin";
-import { argv } from "./yargs";
+import dotenv from "dotenv";
+import { makePgService } from "postgraphile/adaptors/pg";
+import { PostGraphileAmberPreset } from "postgraphile/presets/amber";
+import { ArgFilterAttributesPlugin } from "../plugins/filter/ArgFilterAttributesPlugin";
+import { ArgFilterBackwardRelationsPlugin } from "../plugins/filter/ArgFilterBackwardRelationsPlugin";
 import { ArgFilterLogicalOperatorsPlugin } from "../plugins/filter/ArgFilterLogicalOperatorsPlugin";
 import { ArgFilterPlugin } from "../plugins/filter/ArgFilterPlugin";
-import { ArgFilterAttributesPlugin } from "../plugins/filter/ArgFilterAttributesPlugin";
 import { OrderByAttributesPlugin } from "../plugins/filter/OrderByAttributesPlugin";
+import { CreateMetadataPlugin } from "../plugins/GetMetadataPlugin";
+import historicalPlugins from "../plugins/historical";
 import { OffsetToSkipPlugin } from "../plugins/OffsetToSkipPlugin";
-import { ArgFilterBackwardRelationsPlugin } from "../plugins/filter/ArgFilterBackwardRelationsPlugin";
+import { PgIdToNodeIdPlugin } from "../plugins/PgIdToNodeIdPlugin";
+import { PgRowByVirtualIdPlugin } from "../plugins/PgRowByVirtualIdPlugin";
+import { CreateSchemaSmartTagsPlugin } from "../plugins/smartTagsPlugin";
+import { argv } from "./yargs";
 
 dotenv.config();
 

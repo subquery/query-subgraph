@@ -1,3 +1,6 @@
+// Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0
+
 import type { PgConditionStep } from "@dataplan/pg";
 
 export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin =
@@ -9,14 +12,14 @@ export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin =
     hooks: {
       GraphQLInputObjectType_fields(fields, build, context) {
         const {
+          EXPORTABLE,
           extend,
           graphql: { GraphQLList, GraphQLNonNull },
-          EXPORTABLE,
         } = build;
         const {
+          Self,
           fieldWithHooks,
           scope: { isPgConnectionFilter },
-          Self,
         } = context;
 
         if (!isPgConnectionFilter) return fields;

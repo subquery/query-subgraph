@@ -1,3 +1,6 @@
+// Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0
+
 import type { PgSelectStep, PgCodec } from "@dataplan/pg";
 import type { ConnectionStep, FieldArgs } from "grafast";
 import {
@@ -5,7 +8,6 @@ import {
   GraphQLOutputType,
   GraphQLNamedType,
 } from "graphql";
-
 
 export const ArgFilterPlugin: GraphileConfig.Plugin = {
   name: "ArgFilterPlugin",
@@ -23,7 +25,7 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
       init: {
         after: ["PgCodecs"],
         callback(_, build) {
-          const { inflection, EXPORTABLE, sql } = build;
+          const { EXPORTABLE, inflection, sql } = build;
 
           // Create filter type for all column-having codecs
           for (const pgCodec of build.allPgCodecs) {
@@ -56,19 +58,19 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
       // Add `filter` input argument to connection and simple collection types
       GraphQLObjectType_fields_field_args(args, build, context) {
         const {
+          EXPORTABLE,
           extend,
           inflection,
-          EXPORTABLE,
         } = build;
         const {
+          Self,
           scope: {
+            fieldName,
             isPgFieldConnection,
             isPgFieldSimpleCollection,
-            pgFieldResource: resource,
             pgFieldCodec,
-            fieldName,
+            pgFieldResource: resource,
           },
-          Self,
         } = context;
 
         const shouldAddFilter =

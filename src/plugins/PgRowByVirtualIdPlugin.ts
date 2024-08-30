@@ -39,7 +39,8 @@ declare global {
     }
 }
 
-// Modified to overwrite hidden column _id primary key with id column
+// This plugin is forked from `PgRowByUniquePlugin`: https://github.com/graphile/crystal/blob/main/graphile-build/graphile-build-pg/src/plugins/PgRowByUniquePlugin.ts
+// We modified it to overwrite hidden column _id primary key with id column
 export const PgRowByVirtualIdPlugin: GraphileConfig.Plugin = {
     name: "PgRowByVirtualIdPlugin",
     description:
@@ -49,7 +50,7 @@ export const PgRowByVirtualIdPlugin: GraphileConfig.Plugin = {
 
     inflection: {
         add: {
-            rowByUnique(options, { unique, resource }) {
+            rowByUnique(options, { resource, unique }) {
                 if (typeof unique.extensions?.tags?.fieldName === "string") {
                     return unique.extensions?.tags?.fieldName;
                 }
@@ -76,8 +77,8 @@ export const PgRowByVirtualIdPlugin: GraphileConfig.Plugin = {
                     graphql: { GraphQLNonNull, GraphQLObjectType },
                 } = build;
                 const {
-                    scope: { isRootQuery },
                     fieldWithHooks,
+                    scope: { isRootQuery },
                 } = context;
                 if (!isRootQuery) {
                     return fields;
@@ -123,6 +124,7 @@ export const PgRowByVirtualIdPlugin: GraphileConfig.Plugin = {
                                             graphqlName: string;
                                             codec: PgCodec;
                                         };
+                                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                                     } = Object.create(null);
                                     uniqueKeys.forEach((attributeName) => {
                                         const attribute = resource.codec.attributes![attributeName];
@@ -153,7 +155,6 @@ export const PgRowByVirtualIdPlugin: GraphileConfig.Plugin = {
                        * read in the exported code.
                        */
                                         // TODO: Use `te.runExportable` instead and give the resource a name!
-                                        // eslint-disable-next-line graphile-export/exhaustive-deps
                                         EXPORTABLE(
                                             te.run`\
 return function (resource) {
