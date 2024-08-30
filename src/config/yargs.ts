@@ -9,6 +9,7 @@ export function getYargsOption() {
     return yargs(hideBin(process.argv))
         .env('SUBQL_QUERY')
         .options({
+            // TODO, unsure we need to implement this
             aggregate: {
                 demandOption: false,
                 default: true,

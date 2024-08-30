@@ -12,13 +12,13 @@ const METADATA_TYPES = {
 };
 
 type MetaData = {
-  deployment: String
-  hasIndexingErrors: Boolean
+  deployment: string
+  hasIndexingErrors: boolean
   block?:{
-    number?: Number,
-    hash?: String,
-    parentHash?: String,
-    timestamp?: Number
+    number?: number,
+    hash?: string,
+    parentHash?: string,
+    timestamp?: number
   },
 }
 
@@ -60,13 +60,13 @@ export function CreateMetadataPlugin(schemaName:string){
                             $executorContext,
                             async (client, data) => {
 
-                                const {rows} = await client.query({
+                                const {rows} = await client.query<MetaEntry>({
                                     text: `select * from "${schemaName}"."_metadata" WHERE key = ANY ($1)`,
                                     values: [METADATA_KEYS],
                                 });
 
                                 const result= {} as MetaData ;
-                                for(const row of rows as MetaEntry[]){
+                                for(const row of rows){
                                     if(row.key === 'deployments'){
                                         if (typeof row.value !== "string") {
                                             throw new Error(`Expected deployments to be a string, but got ${typeof row.value}`);

@@ -1,4 +1,7 @@
 // refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterAttributesPlugin.ts 
+// Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0
+
 import type { PgConditionStep } from "@dataplan/pg";
 import { getFieldDefine, getSupportOperators, Operators } from "./utils";
 
@@ -25,7 +28,7 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
         return build
       },
       GraphQLInputObjectType_fields(args, build, context) {
-        const { sql, EXPORTABLE, escapeLikeWildcards } = build
+        const { EXPORTABLE, escapeLikeWildcards, sql } = build
         const { fieldWithHooks, scope: { isPgConnectionFilter, pgCodec } } = context
 
 
@@ -50,6 +53,7 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
                   },
                   [escapeLikeWildcards]
                 ),
+                // eslint-disable-next-line complexity
                 applyPlan: EXPORTABLE(() => function ($where: PgConditionStep<any>, fieldArgs) {
                   const $input = fieldArgs.getRaw();
                   if ($input.evalIs(undefined)) {

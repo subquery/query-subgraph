@@ -1,3 +1,6 @@
+// Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0
+
 import type { PgSelectStep, PgCodec} from "@dataplan/pg";
 import {
   GraphQLInputType,
@@ -27,7 +30,7 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
       init: {
         after: ["PgCodecs"],
         callback(_, build) {
-          const { inflection, EXPORTABLE, sql } = build;
+          const { EXPORTABLE, inflection, sql } = build;
 
           for (const pgCodec of build.allPgCodecs) {
             if (!pgCodec.attributes) continue;
@@ -85,18 +88,18 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
 
       GraphQLObjectType_fields_field_args(args, build, context) {
         const {
+          EXPORTABLE,
           extend,
           inflection,
-          EXPORTABLE,
         } = build;
         const {
+          Self,
           scope: {
             isPgFieldConnection,
             isPgFieldSimpleCollection,
-            pgFieldResource: resource,
             pgFieldCodec,
+            pgFieldResource: resource,
           },
-          Self,
         } = context;
         const shouldAddFilter =
           isPgFieldConnection || isPgFieldSimpleCollection;
