@@ -2,14 +2,19 @@
   "name": "query-subgraph",
   "version": "1.0.0",
   "main": "index.js",
+  "bin": {
+    "subql-subgraph-query": "./bin/run"
+  },
   "repository": "git@github.com:subquery/query-subgraph.git",
   "author": "Tate <yongzhao.tan@onfinality.io>",
   "license": "MIT",
   "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "rm -rf dist && tsc -b",
     "lint": "eslint src --ext .ts --ignore-pattern '*.d.ts'",
     "dev": "GRAPHILE_ENV=development postgraphile --config src/config/graphile.config.ts --allow-explain",
     "start:dev": "tsc && DEBUG=graphile-build:warn GRAPHILE_ENV=development node dist/index.js",
-    "postinstall": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@graphile/simplify-inflection": "^8.0.0-beta.5",
@@ -20,6 +25,7 @@
     "yargs": "latest"
   },
   "devDependencies": {
+    "@tsconfig/node16": "^16.1.3",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "5",
     "eslint-config-prettier": "^8.3.0",
@@ -41,5 +47,9 @@
     ".": [
       "prettier --write"
     ]
-  }
+  },
+  "files": [
+    "/dist",
+    "/bin"
+  ]
 }

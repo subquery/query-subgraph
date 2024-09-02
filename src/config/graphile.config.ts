@@ -24,7 +24,7 @@ import { argv } from "./yargs";
 dotenv.config();
 
 export const DEFAULT_PORT = 3000;
-const pgConnection = util.format("postgres://%s:%s@%s:%s/%s", process.env.DB_USER, process.env.DB_PASS, process.env.DB_HOT, process.env.DB_PORT, process.env.DB_DATABASE);
+const pgConnection = util.format("postgres://%s:%s@%s:%s/%s", process.env.DB_USER, process.env.DB_PASS, process.env.DB_HOST, process.env.DB_PORT, process.env.DB_DATABASE);
 const pgSchema: string = argv('name') as string ?? process.env.PG_SCHEMA ?? "public";
 
 const SchemaSmartTagsPlugin = CreateSchemaSmartTagsPlugin(pgSchema)
