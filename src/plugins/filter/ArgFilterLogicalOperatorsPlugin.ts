@@ -1,12 +1,11 @@
-// refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterLogicalOperatorsPlugin.ts 
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import type { PgConditionStep } from "@dataplan/pg";
+// refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterLogicalOperatorsPlugin.ts
+import type { PgConditionStep } from '@dataplan/pg';
 
-export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin =
-{
-  name: "ArgFilterLogicalOperatorsPlugin",
+export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin = {
+  name: 'ArgFilterLogicalOperatorsPlugin',
   version: '1.0.0',
 
   schema: {
@@ -33,7 +32,7 @@ export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin =
         const logicalOperatorFields = {
           and: fieldWithHooks(
             {
-              fieldName: "and",
+              fieldName: 'and',
               isPgConnectionFilterOperatorLogical: true,
             },
             {
@@ -53,7 +52,7 @@ export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin =
           ),
           or: fieldWithHooks(
             {
-              fieldName: "or",
+              fieldName: 'or',
               isPgConnectionFilterOperatorLogical: true,
             },
             {
@@ -73,7 +72,7 @@ export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin =
           ),
           not: fieldWithHooks(
             {
-              fieldName: "not",
+              fieldName: 'not',
               isPgConnectionFilterOperatorLogical: true,
             },
             {
@@ -92,7 +91,7 @@ export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin =
           ),
         };
 
-        return extend(fields, logicalOperatorFields, "");
+        return extend(fields, logicalOperatorFields, '');
       },
     },
   },

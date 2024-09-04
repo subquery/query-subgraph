@@ -1,28 +1,25 @@
-// refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterBackwardRelationsPlugin.ts 
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
+// refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterBackwardRelationsPlugin.ts
 import type {
   PgConditionStep,
   PgCodecRelation,
   PgCodecWithAttributes,
   PgRegistry,
   PgResource,
-} from "@dataplan/pg";
-import { makeAssertAllowed } from "./utils";
+} from '@dataplan/pg';
+import { makeAssertAllowed } from './utils';
 
-export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
-{
-  name: "ArgFilterBackwardRelationsPlugin",
+export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
+  name: 'ArgFilterBackwardRelationsPlugin',
   version: '1.0.0',
 
   inflection: {
     add: {
       filterManyType(preset, table, foreignTable): string {
         return this.upperCamelCase(
-          `${this.tableType(table)}-to-many-${this.tableType(
-            foreignTable.codec
-          )}-filter`
+          `${this.tableType(table)}-to-many-${this.tableType(foreignTable.codec)}-filter`
         );
       },
       filterSingleRelationByKeysBackwardsFieldName(preset, fieldName) {
@@ -39,14 +36,8 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
       // Registry all possible connections
       init(_, build) {
         const { inflection } = build;
-        for (const source of Object.values(
-          build.input.pgRegistry.pgResources
-        )) {
-          if (
-            source.parameters ||
-            !source.codec.attributes ||
-            source.isUnique
-          ) {
+        for (const source of Object.values(build.input.pgRegistry.pgResources)) {
+          if (source.parameters || !source.codec.attributes || source.isUnique) {
             continue;
           }
           for (const [relationName, relation] of Object.entries(
@@ -55,13 +46,8 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
             }
           )) {
             const foreignTable = relation.remoteResource;
-            const filterManyTypeName = inflection.filterManyType(
-              source.codec,
-              foreignTable
-            );
-            const foreignTableTypeName = inflection.tableType(
-              foreignTable.codec
-            );
+            const filterManyTypeName = inflection.filterManyType(source.codec, foreignTable);
+            const foreignTableTypeName = inflection.tableType(foreignTable.codec);
             if (!build.getTypeMetaByName(filterManyTypeName)) {
               build.recoverable(null, () => {
                 build.registerInputObjectType(
@@ -94,10 +80,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
         } = build;
         const {
           fieldWithHooks,
-          scope: {
-            isPgConnectionFilter,
-            pgCodec,
-          },
+          scope: { isPgConnectionFilter, pgCodec },
         } = context;
 
         const assertAllowed = makeAssertAllowed(build);
@@ -106,9 +89,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
           pgCodec &&
           (Object.values(build.input.pgRegistry.pgResources).find(
             (s) => s.codec === pgCodec && !s.parameters
-          ) as
-            | PgResource<any, PgCodecWithAttributes, any, any, PgRegistry>
-            | undefined);
+          ) as PgResource<any, PgCodecWithAttributes, any, any, PgRegistry> | undefined);
         if (isPgConnectionFilter && pgCodec && pgCodec.attributes && source) {
           const backwardsRelations = Object.entries(
             source.getRelations() as {
@@ -123,17 +104,12 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
 
             const isOneToMany = !relation.isUnique;
 
-            const foreignTableTypeName = inflection.tableType(
-              foreignTable.codec
-            );
-            const foreignTableFilterTypeName =
-              inflection.tableWhereType(foreignTableTypeName);
-            const ForeignTableFilterType = build.getTypeByName(
-              foreignTableFilterTypeName
-            );
+            const foreignTableTypeName = inflection.tableType(foreignTable.codec);
+            const foreignTableFilterTypeName = inflection.tableWhereType(foreignTableTypeName);
+            const ForeignTableFilterType = build.getTypeByName(foreignTableFilterTypeName);
             if (!ForeignTableFilterType) continue;
 
-            if (typeof foreignTable.from === "function") {
+            if (typeof foreignTable.from === 'function') {
               continue;
             }
             const foreignTableExpression = foreignTable.from;
@@ -142,23 +118,18 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
 
             if (isOneToMany) {
               if (
-                build.behavior.pgCodecRelationMatches(relation, "list") ||
-                build.behavior.pgCodecRelationMatches(relation, "connection")
+                build.behavior.pgCodecRelationMatches(relation, 'list') ||
+                build.behavior.pgCodecRelationMatches(relation, 'connection')
               ) {
-                const filterManyTypeName = inflection.filterManyType(
-                  source.codec,
-                  foreignTable
-                );
-                const FilterManyType =
-                  build.getTypeByName(filterManyTypeName);
+                const filterManyTypeName = inflection.filterManyType(source.codec, foreignTable);
+                const FilterManyType = build.getTypeByName(filterManyTypeName);
                 // TODO: revisit using `_` prefixed inflector
                 const fieldName = inflection._manyRelation({
                   registry: source.registry,
                   codec: source.codec,
                   relationName,
                 });
-                const filterFieldName =
-                  inflection.filterManyRelationByKeysFieldName(fieldName);
+                const filterFieldName = inflection.filterManyRelationByKeysFieldName(fieldName);
 
                 fields = extend(
                   fields,
@@ -181,7 +152,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
                             sql
                           ) =>
                             function ($where: PgConditionStep<any>, fieldArgs) {
-                              assertAllowed(fieldArgs, "object");
+                              assertAllowed(fieldArgs, 'object');
                               const $subQuery = $where.existsPlan({
                                 tableExpression: foreignTableExpression,
                                 alias: foreignTable.name,
@@ -220,9 +191,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
                 relationName,
               });
               const filterFieldName =
-                inflection.filterSingleRelationByKeysBackwardsFieldName(
-                  fieldName
-                );
+                inflection.filterSingleRelationByKeysBackwardsFieldName(fieldName);
               fields = extend(
                 fields,
                 {
@@ -244,7 +213,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin =
                           sql
                         ) =>
                           function ($where: PgConditionStep<any>, fieldArgs) {
-                            assertAllowed(fieldArgs, "object");
+                            assertAllowed(fieldArgs, 'object');
                             const $subQuery = $where.existsPlan({
                               tableExpression: foreignTableExpression,
                               alias: foreignTable.name,
