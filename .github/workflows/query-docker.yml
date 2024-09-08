@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       isLatest:
-        description: 'Add latest tag'
-        default: 'true'
+        description: "Add latest tag"
+        default: "true"
         required: true
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "release" ]]
           then
             TAG_NAME=${GITHUB_REF#refs/tags/}
-            if [[ $TAG_NAME == "query/"* ]]
+            if [[ $TAG_NAME == "query-subgraph/"* ]] 
             then
               echo "changes_found=true" >> "$GITHUB_OUTPUT"
             else
@@ -35,7 +35,7 @@ jobs:
             echo "changes_found=true" >> "$GITHUB_OUTPUT"
           fi
 
-  query-build-push-docker:
+  query-build-push-docker-onfinality:
     needs: check
     if: needs.check.outputs.changes_found == 'true'
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
           push: true
           platforms: arm64,amd64
           file: ./packages/query/Dockerfile
-          tags: onfinality/subql-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }}
+          tags: onfinality/subgraph-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }}
           build-args: RELEASE_VERSION=${{ steps.get-query-version.outputs.QUERY_VERSION }}
 
       - name: Build and push
@@ -86,7 +86,7 @@ jobs:
           push: true
           platforms: arm64,amd64
           file: ./packages/query/Dockerfile
-          tags: onfinality/subql-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }},onfinality/subql-query:latest
+          tags: onfinality/subgraph-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }},onfinality/subgraph-query:latest
           build-args: RELEASE_VERSION=${{ steps.get-query-version.outputs.QUERY_VERSION }}
 
       - name: Image digest
@@ -132,8 +132,8 @@ jobs:
           context: .
           push: true
           platforms: arm64,amd64
-          file: ./packages/query/Dockerfile
-          tags: subquerynetwork/subql-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }}
+          file: Dockerfile
+          tags: subquerynetwork/subgraph-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }}
           build-args: RELEASE_VERSION=${{ steps.get-query-version.outputs.QUERY_VERSION }}
 
       - name: Build and push
@@ -143,8 +143,8 @@ jobs:
           context: .
           push: true
           platforms: arm64,amd64
-          file: ./packages/query/Dockerfile
-          tags: subquerynetwork/subql-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }},subquerynetwork/subql-query:latest
+          file: Dockerfile
+          tags: subquerynetwork/subgraph-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }},subquerynetwork/subgraph-query:latest
           build-args: RELEASE_VERSION=${{ steps.get-query-version.outputs.QUERY_VERSION }}
 
       - name: Image digest

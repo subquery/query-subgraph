@@ -11,17 +11,18 @@ jest.mock('../src/config/yargs', () => jest.createMockFromModule('../src/config/
 });
 
 describe("subgraph plugin test", () => {
+    let server: any = null;
     beforeAll(async () => {
         // TODO creaet database and data
         // await createDatabase();
 
-        await startServer();
+        server = await startServer();
     });
     afterAll(async () => {
         // TODO drop database
 
         // stop server
-        process.exit(0);
+        server?.close();
     });
 
     it("query _metadata", async () => {
