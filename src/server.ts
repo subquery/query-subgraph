@@ -8,7 +8,7 @@ import { DEFAULT_PORT, preset } from './config/index';
 import { argv } from './config/yargs';
 
 const port = argv('port') ?? DEFAULT_PORT;
-const pgl = postgraphile(preset);
+export const pgl = postgraphile(preset);
 export function startServer() {
   const serv = pgl.createServ(grafserv);
 
@@ -24,6 +24,6 @@ export function startServer() {
 
   server.listen(port);
   console.log(`Server listening on http://localhost:${port}`);
-  server.close();
+
   return server;
 }
