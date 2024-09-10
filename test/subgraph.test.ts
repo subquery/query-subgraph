@@ -1,17 +1,20 @@
 import { pgl, startServer } from "../src/server";
 import { Pool } from 'pg';
 import dotenv from "dotenv";
-
+import { ApolloServer, gql } from 'apollo-server-express';
+import type { GraphQLSchema } from 'graphql';
 dotenv.config();
-const dbSchema = 'subgraph_test';
 
 jest.mock('../src/config/yargs', () => {
+  const dbSchema = 'subgraph_test';
   const actualModule = jest.requireActual('../src/config/yargs');
 
   const getYargsOption = jest.fn(() => ({
     argv: {
       name: dbSchema,
-      port: 3001
+      port: 3001,
+      'query-explain': true,
+      'query-timeout': 3000,
     }
   }));
   const argv = (arg: string) => (getYargsOption().argv as any)[arg];
@@ -23,7 +26,10 @@ jest.mock('../src/config/yargs', () => {
 });
 
 describe("subgraph plugin test", () => {
+  const dbSchema = 'subgraph_test';
   let server: any = null;
+  let graphqlSchema: GraphQLSchema | undefined = undefined;
+  let apolloServer: ApolloServer | null = null;
 
   const pool: Pool = new Pool({
     user: process.env.DB_USER,
@@ -37,7 +43,8 @@ describe("subgraph plugin test", () => {
     console.error('PostgreSQL client generated error: ', err.message);
   });
 
-  beforeAll(async () => {
+  async function initDatabase() {
+    await pool.query(`CREATE EXTENSION IF NOT EXISTS btree_gist;`);
     // creaet database and data
     await pool.query(`CREATE SCHEMA IF NOT EXISTS ${dbSchema}`);
 
@@ -103,10 +110,19 @@ describe("subgraph plugin test", () => {
     await pool.query(`COMMENT ON TABLE "${dbSchema}"."transfers" IS '@foreignKey (from_id) REFERENCES accounts (id)|@foreignFieldName sentTransfers
     @foreignKey (to_id) REFERENCES accounts (id)|@foreignFieldName recievedTransfers';`);
 
-    server = await startServer();
+    console.log('Database initialized');
+  }
+  async function insertMetadata(key: string, value: string) {
+    await pool.query(`INSERT INTO ${dbSchema}._metadata(
+            key, value, "createdAt", "updatedAt")
+            VALUES ('${key}', '${value}', '2021-11-07 07:02:31.768+00', '2021-11-07 07:02:31.768+00');`);
+  }
 
-    const graphqlSchema = await pgl.getSchema();
-    console.log({ graphqlSchema })
+  beforeAll(async () => {
+    await initDatabase().catch(()=>{console.log('init database error')});
+    server = await startServer();
+    graphqlSchema = await pgl.getSchema();
+    apolloServer = new ApolloServer({ schema: graphqlSchema })
   });
 
   afterAll(async () => {
@@ -119,7 +135,49 @@ describe("subgraph plugin test", () => {
   });
 
   it("query _metadata", async () => {
-    // query _metadata
+    await Promise.all([
+      insertMetadata('lastProcessedHeight', '398'),
+      insertMetadata('lastProcessedTimestamp', '110101'),
+      insertMetadata('targetHeight', '7595931'),
+      insertMetadata('chain', `"Polkadot"`),
+      insertMetadata('specName', `"polkadot"`),
+      insertMetadata('genesisHash', `"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"`),
+      insertMetadata('indexerHealthy', 'true'),
+      insertMetadata('indexerNodeVersion', `"0.21-0"`),
+    ]);
+
+    const GET_META = gql`
+      query MyQuery {
+        _meta {
+          block {
+            hash
+            parentHash
+            number
+            timestamp
+          }
+          deployment
+          hasIndexingErrors
+        }
+      }
+    `
+
+    const mock = {
+      "_meta": {
+        "block": {
+          "hash": null,
+          "parentHash": null,
+          "number": 398,
+          "timestamp": null
+        },
+        "deployment": null,
+        "hasIndexingErrors": true
+      }
+    };
+
+    const results = await apolloServer!.executeOperation({ query: GET_META });
+    const fetchedMeta = results.data;
+
+    expect(fetchedMeta).toMatchObject(mock);
   });
   it("filter plugin", async () => {
 
