@@ -135,6 +135,7 @@ describe("subgraph plugin test", () => {
 
   beforeAll(async () => {
     await initDatabase();
+    await genAccountData();
     server = await startServer();
     apolloClient = new ApolloClient({ uri: 'http://localhost:3001/graphql', cache: new InMemoryCache() });
   });
@@ -205,10 +206,6 @@ describe("subgraph plugin test", () => {
   });
 
   describe("filter plugin", () => {
-    beforeAll(async () => {
-      await genAccountData();
-    });
-
     it("Equal", async () => {
       const results = await graphqlQuery(gql`
         query MyQuery {
@@ -300,17 +297,6 @@ describe("subgraph plugin test", () => {
       const fetchedMeta = results.data;
       expect(fetchedMeta.accounts.length).toBe(5);
     });
-    it("contains", async () => {
-      const results = await graphqlQuery(gql`
-        query MyQuery {
-          accounts(first: 100, where: {id_contains: "njkjdfyqvdnfbqzdawmj7waqwfumxmizjhhr"}) {
-            id
-          }
-        }
-      `);
-      const fetchedMeta = results.data;
-      expect(fetchedMeta.accounts.length).toBe(2);
-    });
     it("Contains", async () => {
       const results = await graphqlQuery(gql`
         query MyQuery {
@@ -333,7 +319,7 @@ describe("subgraph plugin test", () => {
       const fetchedMeta = results.data;
       expect(fetchedMeta.accounts.length).toBe(9);
     });
-    
+
     it("Contains nocase", async () => {
       const results = await graphqlQuery(gql`
         query MyQuery {
@@ -468,10 +454,42 @@ describe("subgraph plugin test", () => {
 
   });
 
-  // it("order plugin", async () => {
+  describe("order plugin", () => {
+    it("order by firstTransferBlock asc", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, orderBy: firstTransferBlock, orderDirection: asc) {
+            id
+            firstTransferBlock
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
 
-  // });
-  // it("block height plugin", async () => {
+      for (let i = 0; i < fetchedMeta.accounts.length - 1; i++) {
+        expect(fetchedMeta.accounts[i].firstTransferBlock).toBeLessThanOrEqual(fetchedMeta.accounts[i + 1].firstTransferBlock);
+      }
+    });
 
-  // });
+    it("order by firstTransferBlock desc", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, orderBy: firstTransferBlock, orderDirection: desc) {
+            id
+            firstTransferBlock
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+
+      for (let i = 0; i < fetchedMeta.accounts.length - 1; i++) {
+        expect(fetchedMeta.accounts[i].firstTransferBlock).toBeGreaterThanOrEqual(fetchedMeta.accounts[i + 1].firstTransferBlock);
+      }
+    });
+
+  });
+  
+  describe("block height plugin", () => {
+
+  });
 });
