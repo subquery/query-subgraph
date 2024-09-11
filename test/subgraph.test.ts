@@ -1,8 +1,7 @@
-import { pgl, startServer } from "../src/server";
+import { startServer } from "../src/server";
 import { Pool } from 'pg';
 import dotenv from "dotenv";
-import { ApolloServer, gql } from 'apollo-server-express';
-import type { GraphQLSchema } from 'graphql';
+import { ApolloClient, DocumentNode, InMemoryCache, gql } from '@apollo/client';
 dotenv.config();
 
 jest.mock('../src/config/yargs', () => {
@@ -28,8 +27,7 @@ jest.mock('../src/config/yargs', () => {
 describe("subgraph plugin test", () => {
   const dbSchema = 'subgraph_test';
   let server: any = null;
-  let graphqlSchema: GraphQLSchema | undefined = undefined;
-  let apolloServer: ApolloServer | null = null;
+  let apolloClient: ApolloClient<any> | undefined;
 
   const pool: Pool = new Pool({
     user: process.env.DB_USER,
@@ -42,6 +40,10 @@ describe("subgraph plugin test", () => {
   pool.on('error', (err) => {
     console.error('PostgreSQL client generated error: ', err.message);
   });
+
+  async function graphqlQuery(query: DocumentNode) {
+    return await apolloClient!.query({ query });
+  }
 
   async function initDatabase() {
     await pool.query(`CREATE EXTENSION IF NOT EXISTS btree_gist;`);
@@ -113,16 +115,28 @@ describe("subgraph plugin test", () => {
     console.log('Database initialized');
   }
   async function insertMetadata(key: string, value: string) {
-    await pool.query(`INSERT INTO ${dbSchema}._metadata(
-            key, value, "createdAt", "updatedAt")
-            VALUES ('${key}', '${value}', '2021-11-07 07:02:31.768+00', '2021-11-07 07:02:31.768+00');`);
+    await pool.query(`INSERT INTO ${dbSchema}._metadata(key, value, "createdAt", "updatedAt") VALUES ('${key}', '${value}', '2021-11-07 07:02:31.768+00', '2021-11-07 07:02:31.768+00');`);
+  }
+  async function genAccountData() {
+    Promise.all([
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('1mndd9e8ksscxxdaccbkw3iwfqwdabifre8fvrks5ses4e4', '34,40,104,41,232,173,135,247,11,55,240,40,14,249,28,221,232,183,9,102,182,110,17,124,98,253,135,223,179,110,63,62', 29258, 29258, 'bd5e4b2e-4254-43d6-b400-b9ea8679a1da', '[29258,)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('1kvkrevmuitc2lw2a4qyhsajj9ee9lrsywzkmk5hybeyhgw', '14,109,230,139,19,184,36,121,251,233,136,171,158,203,22,186,212,70,182,123,153,60,221,145,152,205,65,199,198,37,156,73', 29258, 29258, '402cee3c-c886-41db-a171-fa95f49f502c', '[29258,197681)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('14tkt6bunjkjdfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs', '152,200,163,208,29,169,135,123,123,48,135,124,113,122,232,242,167,231,38,206,250,23,108,93,252,220,235,201,182,161,34,35', 197681, 197681, 'd093c76f-270a-4d9f-8cd5-153c04e8f024', '[197681,198072)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('1kvkrevmuitc2lw2a4qyhsajj9ee9lrsywzkmk5hybeyhgw', '14,109,230,139,19,184,36,121,251,233,136,171,158,203,22,186,212,70,182,123,153,60,221,145,152,205,65,199,198,37,156,73', 29258, 197681, 'e4ce78e1-e1a9-4f4a-91e1-cc47ef3413fc', '[197681,240853)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('14tkt6bunjkjdfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs', '152,200,163,208,29,169,135,123,123,48,135,124,113,122,232,242,167,231,38,206,250,23,108,93,252,220,235,201,182,161,34,35', 197681, 214576, '0e756b37-6377-4f28-930e-42bcc528a3a7', '[214576,241591)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('1kvkrevmuitc2lw2a4qyhsajj9ee9lrsywzkmk5hybeyhgw', '14,109,230,139,19,184,36,121,251,233,136,171,158,203,22,186,212,70,182,123,153,60,221,145,152,205,65,199,198,37,156,73', 29258, 240853, '70a3aa2c-f3fa-4f90-9362-6623c81f1324', '[240853,240984)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('14jeznxa4fqzsf7ef9pryrny71cd1ff3czizfrntwvivuc9m', '146,43,193,108,255,26,207,196,160,140,181,191,206,186,218,169,235,24,44,212,122,81,184,176,71,160,32,42,233,98,74,28', 240853, 240853, '165df76f-d500-4d9b-8cb5-aef621186370', '[240853,)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('12j3cz8qskcgjxmsjpvl2z2t3fpmw3kobabargpnuibfc7o8', '76,75,247,249,61,10,94,216,1,239,119,143,142,126,245,130,1,189,215,227,62,22,127,175,66,160,29,67,146,131,203,67', 240853, 240853, '94145ac5-f5d5-49db-94d4-621a25aa146d', '[240853,)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('1reg2tyv9rgfrqkppremrhrxrnsudbqkzkywp1ustd97wpj', '18,204,181,51,56,172,13,165,113,211,105,117,72,52,111,181,240,182,55,172,148,18,248,171,191,109,19,88,139,231,86,50', 240984, 240984, '011298ee-b240-4aa3-bb06-1ee46bb8eb23', '[240984,)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('1c6e7tl9hqktqfpdzfjmdlkfiijmqriwosxozzleakcpmpk', '8,117,74,187,106,251,165,26,47,116,240,185,123,188,219,56,63,87,154,2,165,228,84,31,238,115,103,16,175,86,44,108', 240984, 240984, '9058214c-cc2e-441b-bd76-6d24446fe608', '[240984,)');`),
+      await pool.query(`INSERT INTO "${dbSchema}"."accounts" ("id", "public_key", "first_transfer_block", "last_transfer_block", "_id", "_block_range") VALUES ('13ypnbtwklbujag2raa286ukrfvvgj3jdxsfihelf5aq1kvk', '112,189,233,173,82,193,14,226,75,136,20,76,97,47,14,86,208,211,183,153,91,217,224,84,17,112,224,111,46,127,199,8', 240984, 240984, '570ee5d8-2071-4fe3-9166-3a7ee3bd30d5', '[240984,)');`),
+    ]);
   }
 
   beforeAll(async () => {
-    await initDatabase().catch(()=>{console.log('init database error')});
+    await initDatabase();
     server = await startServer();
-    graphqlSchema = await pgl.getSchema();
-    apolloServer = new ApolloServer({ schema: graphqlSchema })
+    apolloClient = new ApolloClient({ uri: 'http://localhost:3001/graphql', cache: new InMemoryCache() });
   });
 
   afterAll(async () => {
@@ -134,19 +148,43 @@ describe("subgraph plugin test", () => {
     await pool.end();
   });
 
-  it("query _metadata", async () => {
-    await Promise.all([
-      insertMetadata('lastProcessedHeight', '398'),
-      insertMetadata('lastProcessedTimestamp', '110101'),
-      insertMetadata('targetHeight', '7595931'),
-      insertMetadata('chain', `"Polkadot"`),
-      insertMetadata('specName', `"polkadot"`),
-      insertMetadata('genesisHash', `"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"`),
-      insertMetadata('indexerHealthy', 'true'),
-      insertMetadata('indexerNodeVersion', `"0.21-0"`),
-    ]);
+  describe("_mate plugin", () => {
+    it("query _meta", async () => {
+      await Promise.all([
+        insertMetadata('genesisHash', '"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"'),
+        insertMetadata('chain', '"Polkadot"'),
+        insertMetadata('specName', '"polkadot"'),
+        insertMetadata('indexerNodeVersion', '"5.2.2"'),
+        insertMetadata('startHeight', '1'),
+        insertMetadata('dynamicDatasources', '[]'),
+        insertMetadata('deployments', '"{\\"1\\":\\"/polkadot-test\\"}"'),
+        insertMetadata('historicalStateEnabled', 'true'),
+        insertMetadata('runnerNode', '"@subql/node"'),
+        insertMetadata('runnerNodeVersion', '">=3.0.1"'),
+        insertMetadata('runnerQuery', '"@subql/query"'),
+        insertMetadata('runnerQueryVersion', '"*"'),
+        insertMetadata('schemaMigrationCount', '2'),
+        insertMetadata('indexerHealthy', 'true'),
+        insertMetadata('processedBlockCount', '702'),
+        insertMetadata('lastProcessedHeight', '1205725'),
+        insertMetadata('lastProcessedTimestamp', '1725960100839'),
+        insertMetadata('targetHeight', '22472571'),
+      ]);
 
-    const GET_META = gql`
+      const mock = {
+        "_meta": {
+          "deployment": "/polkadot-test",
+          "hasIndexingErrors": true,
+          "block": {
+            "hash": null,
+            "number": 1205725,
+            "parentHash": null,
+            "timestamp": null
+          }
+        }
+      };
+
+      const results = await graphqlQuery(gql`
       query MyQuery {
         _meta {
           block {
@@ -159,33 +197,40 @@ describe("subgraph plugin test", () => {
           hasIndexingErrors
         }
       }
-    `
+    `);
+      const fetchedMeta = results.data;
 
-    const mock = {
-      "_meta": {
-        "block": {
-          "hash": null,
-          "parentHash": null,
-          "number": 398,
-          "timestamp": null
-        },
-        "deployment": null,
-        "hasIndexingErrors": true
-      }
-    };
-
-    const results = await apolloServer!.executeOperation({ query: GET_META });
-    const fetchedMeta = results.data;
-
-    expect(fetchedMeta).toMatchObject(mock);
+      expect(fetchedMeta).toMatchObject(mock);
+    });
   });
-  it("filter plugin", async () => {
 
-  });
-  it("order plugin", async () => {
+  describe("filter plugin", () => {
+    beforeAll(async () => {
+      await genAccountData();
+    });
 
-  });
-  it("block height plugin", async () => {
+    it("Equal", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 10, where: {id: "14tkt6bunjkjdfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs"}) {
+            id
+            lastTransferBlock
+            nodeId
+            publicKey
+            firstTransferBlock
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
 
+      expect(fetchedMeta.accounts.length).toBe(2);
+    });
   });
+
+  // it("order plugin", async () => {
+
+  // });
+  // it("block height plugin", async () => {
+
+  // });
 });
