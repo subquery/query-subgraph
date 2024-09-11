@@ -65,6 +65,7 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
                     // eslint-disable-next-line complexity
                     applyPlan: EXPORTABLE(
                       () =>
+                        /* eslint-disable complexity */
                         function ($where: PgConditionStep<any>, fieldArgs) {
                           const $input = fieldArgs.getRaw();
                           if ($input.evalIs(undefined)) {
