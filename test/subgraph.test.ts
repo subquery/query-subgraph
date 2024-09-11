@@ -488,8 +488,18 @@ describe("subgraph plugin test", () => {
     });
 
   });
-  
-  describe("block height plugin", () => {
 
+  describe("block height plugin", () => {
+    it("block height", async () => {
+      const results = await graphqlQuery(gql`
+      query MyQuery {
+          accounts(block: {number: 30000}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(2);
+    });
   });
 });

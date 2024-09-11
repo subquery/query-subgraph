@@ -194,7 +194,6 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
               type: tableBlockHeightType,
 
               applyPlan: (_, $pgSelect: PgSelectStep, val) => {
-                _._blockHeightCondition = { val };
                 const height = build.sql
                   .fragment`${build.sql.value(val.getRaw('number').eval())}::bigint`;
                 _globalHeight = height;
