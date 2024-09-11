@@ -214,17 +214,258 @@ describe("subgraph plugin test", () => {
         query MyQuery {
           accounts(first: 10, where: {id: "14tkt6bunjkjdfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs"}) {
             id
-            lastTransferBlock
-            nodeId
-            publicKey
-            firstTransferBlock
           }
         }
       `);
       const fetchedMeta = results.data;
-
       expect(fetchedMeta.accounts.length).toBe(2);
     });
+    it("Not equal", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 10, where: {id_not: "14tkt6bunjkjdfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(9);
+    });
+
+    it("gte", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {firstTransferBlock_gte: 29258}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(11);
+    });
+
+    it("gt", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {firstTransferBlock_gt: 29258}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(7);
+    });
+    it("lte", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {firstTransferBlock_lte: 29258}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(4);
+    });
+
+    it("lt", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {firstTransferBlock_lt: 29258}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(0);
+    });
+    it("in", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {firstTransferBlock_in: [29258,197681]}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(6);
+    });
+    it("not_in", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {firstTransferBlock_not_in: [29258,197681]}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(5);
+    });
+    it("contains", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_contains: "njkjdfyqvdnfbqzdawmj7waqwfumxmizjhhr"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(2);
+    });
+    it("Contains", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_contains: "njkjdfyqvdnfbqzdawmj7waqwfumxmizjhhr"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(2);
+    });
+    it("Not contains", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_not_contains: "njkjdfyqvdnfbqzdawmj7waqwfumxmizjhhr"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(9);
+    });
+    
+    it("Contains nocase", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_contains_nocase: "njkjdfyqvdnfbqzdawmj7waqwfumxmizJHHr"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(2);
+    });
+    it("Not contains nocase", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_not_contains_nocase: "njkjdfyqvdnfbqzdawmj7waqwfumxmizJHHr"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(9);
+    });
+
+    it("ends_with", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_ends_with: "dfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(2);
+    });
+    it("not_ends_with", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_not_ends_with: "dfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(9);
+    });
+    it("starts_with", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_starts_with: "14tkt6bunjkjdfyqvdnfbq"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(2);
+    });
+    it("not_starts_with", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_not_starts_with: "14tkt6bunjkjdfyqvdnfbq"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(9);
+    });
+    it("ends_with_nocase", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_ends_with_nocase: "dfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(2);
+
+      const results2 = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_ends_with_nocase: "dfyqvdnfbqzdawmj7waqwfumxmizjhhrr1g"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta2 = results2.data;
+      expect(fetchedMeta2.accounts.length).toBe(0);
+    });
+    it("not_ends_with_nocase", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_not_ends_with_nocase: "dfyqvdnfbqzdawmj7waqwfumxmizjhhrr1gs"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(9);
+    });
+    it("starts_with_nocase", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_starts_with_nocase: "14tkt6bunjkjdfyqvdnfBQ"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(2);
+
+      const results2 = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_starts_with_nocase: "tkt6bunjkjdfyqvdnfBQ"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta2 = results2.data;
+      expect(fetchedMeta2.accounts.length).toBe(0);
+    });
+    it("not_starts_with_nocase", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          accounts(first: 100, where: {id_not_starts_with_nocase: "14tkt6bunjkjdfyqvdnfBQ"}) {
+            id
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta.accounts.length).toBe(9);
+    });
+
   });
 
   // it("order plugin", async () => {
