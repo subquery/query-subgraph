@@ -11,4 +11,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support GraphQL query style similar to subgraph.
 
 
-[Unreleased]: https://github.com/subquery/query-subgraph/creleases/1.0.0...HEAD
+[Unreleased]: https://github.com/subquery/query-subgraph/creleases/0.0.1...HEAD
