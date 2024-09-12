@@ -48,7 +48,7 @@ jobs:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-latest
     # Docker Hub image that `container-job` executes in
-    container: node:18
+    container: node:20
     services:
       # Label used to access the service container
       postgres:

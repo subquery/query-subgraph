@@ -75,7 +75,7 @@ jobs:
           push: true
           platforms: arm64,amd64
           file: Dockerfile
-          tags: subquerynetwork/subgraph-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }}
+          tags: subquerynetwork/query-subgraph:v${{ steps.get-query-version.outputs.QUERY_VERSION }}
           build-args: RELEASE_VERSION=${{ steps.get-query-version.outputs.QUERY_VERSION }}
 
       - name: Build and push
@@ -86,7 +86,7 @@ jobs:
           push: true
           platforms: arm64,amd64
           file: Dockerfile
-          tags: subquerynetwork/subgraph-query:v${{ steps.get-query-version.outputs.QUERY_VERSION }},subquerynetwork/subgraph-query:latest
+          tags: subquerynetwork/query-subgraph:v${{ steps.get-query-version.outputs.QUERY_VERSION }},subquerynetwork/query-subgraph:latest
           build-args: RELEASE_VERSION=${{ steps.get-query-version.outputs.QUERY_VERSION }}
 
       - name: Image digest
