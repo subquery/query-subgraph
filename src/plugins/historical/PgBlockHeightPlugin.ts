@@ -21,10 +21,6 @@ declare global {
   }
 }
 
-// TODO, Temporarily store the block height condition from root args
-// Revisit this issue once we have a better understanding.
-let _globalHeight: SQL;
-
 export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
   name: 'PgBlockHeightPlugin',
   description: "Adds the 'blockHeight' argument to connections and lists",
@@ -116,10 +112,14 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                   // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
                   defaultValue: 9223372036854775807,
                   autoApplyAfterParentPlan: true,
-                  applyPlan: (_, $pgSelect: PgSelectStep, val) => {
-                    const height = _globalHeight;
-                    const alias = $pgSelect.alias;
+                  applyPlan: (_, $pgSelect: PgSelectStep, val, four) => {
+                    const context = val.get().operationPlan.context;
+                    const height = context._block_height;
 
+                    if (!height) {
+                      return;
+                    }
+                    const alias = $pgSelect.alias;
                     const rangeQuery = makeRangeQuery(alias, height, build.sql);
                     $pgSelect.where(rangeQuery);
                   },
@@ -193,10 +193,17 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
               autoApplyAfterParentPlan: true,
               type: tableBlockHeightType,
 
-              applyPlan: (_, $pgSelect: PgSelectStep, val) => {
+              applyPlan: (_, $pgSelect: PgSelectStep, val, four) => {
                 const height = build.sql
                   .fragment`${build.sql.value(val.getRaw('number').eval())}::bigint`;
-                _globalHeight = height;
+                // (four.entity.extensions as any)._yoozo = height;
+
+                // _._yoozo2 = height;
+                const context = val.get().operationPlan.context;
+                context._block_height = height;
+                if (!height) {
+                  return;
+                }
                 const alias = $pgSelect.alias;
                 const rangeQuery = makeRangeQuery(alias, height, build.sql);
                 $pgSelect.where(rangeQuery);
