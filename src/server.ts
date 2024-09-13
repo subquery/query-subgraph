@@ -4,12 +4,11 @@
 import { createServer } from 'node:http';
 import { postgraphile } from 'postgraphile';
 import { grafserv } from 'postgraphile/grafserv/node';
-import { DEFAULT_PORT, preset } from './config/index';
-import { argv } from './config/yargs';
+import { genPreset, ArgsInterface } from './config/index';
 
-const port = argv('port') ?? DEFAULT_PORT;
-const pgl = postgraphile(preset);
-export function startServer() {
+export function startServer(args: ArgsInterface) {
+  const preset = genPreset(args);
+  const pgl = postgraphile(preset);
   const serv = pgl.createServ(grafserv);
 
   const server = createServer();
@@ -22,8 +21,19 @@ export function startServer() {
     process.exit(1);
   });
 
-  server.listen(port);
-  console.log(`Server listening on http://localhost:${port}`);
+  server.listen(args.port);
+  console.log(`Server listening on http://localhost:${args.port}`);
+
+  process.on('SIGINT', () => {
+    server.close(() => {
+      console.log('Server closed');
+      process.exit(0);
+    });
+  });
+  process.on('uncaughtException', (e) => {
+    console.error(e, 'Uncaught Exception');
+    throw e;
+  });
 
   return server;
 }
