@@ -196,9 +196,6 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
               applyPlan: (_, $pgSelect: PgSelectStep, val, four) => {
                 const height = build.sql
                   .fragment`${build.sql.value(val.getRaw('number').eval())}::bigint`;
-                // (four.entity.extensions as any)._yoozo = height;
-
-                // _._yoozo2 = height;
                 const context = val.get().operationPlan.context;
                 context._block_height = height;
                 if (!height) {
