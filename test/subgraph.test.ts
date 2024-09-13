@@ -2,27 +2,8 @@ import { startServer } from "../src/server";
 import { Pool } from 'pg';
 import dotenv from "dotenv";
 import { ApolloClient, DocumentNode, InMemoryCache, gql } from '@apollo/client';
+import { ArgsInterface } from "../src/config";
 dotenv.config();
-
-jest.mock('../src/config/yargs', () => {
-  const dbSchema = 'subgraph_test';
-  const actualModule = jest.requireActual('../src/config/yargs');
-
-  const getYargsOption = jest.fn(() => ({
-    argv: {
-      name: dbSchema,
-      port: 3001,
-      'query-explain': true,
-      'query-timeout': 3000,
-    }
-  }));
-  const argv = (arg: string) => (getYargsOption().argv as any)[arg];
-  return {
-    ...actualModule,
-    getYargsOption,
-    argv,
-  };
-});
 
 describe("subgraph plugin test", () => {
   const dbSchema = 'subgraph_test';
@@ -136,7 +117,13 @@ describe("subgraph plugin test", () => {
   beforeAll(async () => {
     await initDatabase();
     await genAccountData();
-    server = await startServer();
+    server = await startServer({
+      name: dbSchema,
+      port: 3001,
+      queryExplain: true,
+      queryTimeout: '3000',
+    } as ArgsInterface);
+    
     apolloClient = new ApolloClient({ uri: 'http://localhost:3001/graphql', cache: new InMemoryCache() });
   });
 
