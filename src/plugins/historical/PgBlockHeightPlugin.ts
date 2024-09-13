@@ -4,7 +4,6 @@
 // Declare the type
 import type { PgCodecWithAttributes, PgSelectStep } from '@dataplan/pg';
 import { GraphQLFloat, GraphQLInputObjectType } from 'graphql';
-import { SQL } from 'pg-sql2';
 import { makeRangeQuery } from './utils';
 
 declare global {
