@@ -66,3 +66,4 @@ prepare_package_release() {
 }
 
 prepare_package_release "."
+git add .yarn/versions
