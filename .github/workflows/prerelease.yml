@@ -1,0 +1,46 @@
+name: "Prerelease"
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/**'
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  Bump-Prerelease-Publish:
+    name: Bump-Prerelease-Publish
+    if: "!startsWith(github.event.head_commit.message, '[SKIP CI]') && !startsWith(github.event.head_commit.message, '[release]') && github.repository == 'subquery/query-subgraph'"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+          token: ${{ secrets.REPO_TOKEN }}
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: yarn
+
+      - name: build
+        run: yarn build
+
+      #Add remove-stable-version
+      - name: Bump query-subgraph & deploy
+        uses: ./.github/actions/create-prerelease
+        with:
+          package-path: .
+          npm-token: ${{ secrets.NPM_TOKEN }}
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v5
+        with:
+          message: '[SKIP CI] Prerelease'
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
