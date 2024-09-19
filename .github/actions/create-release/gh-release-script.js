@@ -69,7 +69,7 @@ async function publishRelease(releaseInfo) {
         owner: 'subquery',
         name: `[${version}] ${repoName}`,
         repo: 'query-subgraph',
-        tag_name: `${packageName[1]}/${version}`,
+        tag_name: `query-subgraph/${version}`,
         target_commitish: `${myArgs[1]}`,
         body: releaseInfo
     }).catch(err => {

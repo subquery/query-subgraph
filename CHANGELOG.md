@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Repo generate tag name
+
 ## [0.0.5] - 2024-09-19
 ### Fixed
 - Add @actions/core and @geut/chan
