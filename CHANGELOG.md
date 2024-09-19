@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- The issue with the packageManager inconsistency during the Docker build process.
+
 ## [0.0.6] - 2024-09-19
 ### Fixed
 - Repo generate tag name
