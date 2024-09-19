@@ -14,5 +14,9 @@ jq -r '.dependencies | to_entries[] | select(.value == "workspace:*") | .key' pa
   fi
 done
 
+# remove packageManager from package.json
+jq 'del(.packageManager)' package.json > package.tmp.json && mv package.tmp.json package.json
+
+
 yarn pack --filename app.tgz
 rm -rf /root/.npm /root/.cache
