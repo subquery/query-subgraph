@@ -1,5 +1,5 @@
 {
-  "name": "query-subgraph",
+  "name": "@subql/query-subgraph",
   "version": "0.0.7",
   "main": "index.js",
   "bin": {
