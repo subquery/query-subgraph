@@ -123,7 +123,7 @@ describe("subgraph plugin test", () => {
       queryExplain: true,
       queryTimeout: '3000',
     } as ArgsInterface);
-    
+
     apolloClient = new ApolloClient({ uri: 'http://localhost:3001/graphql', cache: new InMemoryCache() });
   });
 
@@ -489,4 +489,9 @@ describe("subgraph plugin test", () => {
       expect(fetchedMeta.accounts.length).toBe(2);
     });
   });
+
+  describe("subqery _metadata query", () => {
+    // TODO 
+
+  })
 });

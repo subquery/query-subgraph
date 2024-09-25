@@ -105,11 +105,11 @@ export function ConvertGraphqlType(fieldType: string): GraphQLInputType | undefi
       return GraphQLString;
     case 'int2':
     case 'int4':
-    case 'int8':
     case 'float8':
     case 'float4':
     case 'numeric':
       return GraphQLFloat;
+    case 'int8':
     case 'timestamp':
       return GraphQLString;
     case 'varchar':

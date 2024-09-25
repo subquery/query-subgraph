@@ -48,6 +48,11 @@ export const yargsOptions = {
     type: 'boolean',
     default: false,
   },
+  indexer: {
+    demandOption: false,
+    describe: 'Url that allows query to access indexer metadata',
+    type: 'string',
+  },
 } satisfies { [key: string]: Options };
 
 export type ArgsInterface = ArgumentsCamelCase<InferredOptionTypes<typeof yargsOptions>>;

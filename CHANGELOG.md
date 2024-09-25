@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Support subqery _metadata query(#4)
+
+### Fixed
+- Bigint query type not match
+
 ## [0.1.0] - 2024-09-20
 ### Fixed
 - Package rename @subql/query-subgraph
