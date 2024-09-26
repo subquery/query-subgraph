@@ -124,7 +124,7 @@ describe("subgraph plugin test", () => {
       queryTimeout: '3000',
     } as ArgsInterface);
 
-    apolloClient = new ApolloClient({ uri: 'http://localhost:3001/graphql', cache: new InMemoryCache() });
+    apolloClient = new ApolloClient({ uri: 'http://localhost:3001/graphql', cache: new InMemoryCache({ addTypename: false }) });
   });
 
   afterAll(async () => {
@@ -491,7 +491,77 @@ describe("subgraph plugin test", () => {
   });
 
   describe("subqery _metadata query", () => {
-    // TODO 
+    it("block height", async () => {
+      const results = await graphqlQuery(gql`
+        query MyQuery {
+          _metadata {
+            lastProcessedHeight
+            lastProcessedTimestamp
+            targetHeight
+            chain
+            specName
+            genesisHash
+            startHeight
+            indexerHealthy
+            indexerNodeVersion
+            queryNodeVersion
+            evmChainId
+            deployments
+            lastFinalizedVerifiedHeight
+            unfinalizedBlocks
+            lastCreatedPoiHeight
+            latestSyncedPoiHeight
+            dbSize
+            queryNodeStyle
+            dynamicDatasources
+            rowCountEstimate {
+              estimate
+              table
+            }
+          }
+        }
+      `);
+      const fetchedMeta = results.data;
+      expect(fetchedMeta).toEqual({
+        _metadata: {
+          "chain": "Polkadot",
+          "dbSize": null,
+          "deployments": {
+            "1": "/polkadot-test",
+          },
+          "dynamicDatasources": [],
+          "evmChainId": null,
+          "genesisHash": "0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+          "indexerHealthy": true,
+          "indexerNodeVersion": "5.2.2",
+          "lastCreatedPoiHeight": null,
+          "lastFinalizedVerifiedHeight": null,
+          "lastProcessedHeight": 1205725,
+          "lastProcessedTimestamp": "1725960100839",
+          "latestSyncedPoiHeight": null,
+          "queryNodeStyle": "subgraph",
+          "queryNodeVersion": "0.1.0",
+          "specName": "polkadot",
+          "startHeight": 1,
+          "targetHeight": 22472571,
+          "unfinalizedBlocks": null,
+          "rowCountEstimate": [
+            {
+              "estimate": -1,
+              "table": "transfers",
+            },
+            {
+              "estimate": -1,
+              "table": "accounts",
+            },
+            {
+              "estimate": -1,
+              "table": "_metadata",
+            },
+          ],
+        }
+      });
+    });
 
   })
 });
