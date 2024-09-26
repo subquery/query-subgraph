@@ -10,7 +10,6 @@ import {
   TableEstimate,
 } from '@subql/utils';
 import { makeExtendSchemaPlugin, gql, ExtensionDefinition } from 'graphile-utils';
-import fetch, { Response } from 'node-fetch';
 import { PgClient, withPgClientTransaction } from 'postgraphile/@dataplan/pg';
 import { constant } from 'postgraphile/grafast';
 import { ArgsInterface } from '../config/yargs';
@@ -55,41 +54,11 @@ type MetaType = number | string | boolean;
 type MetaEntry = { key: string; value: MetaType };
 type MetadatasConnection = {
   totalCount?: number;
-  nodes?: MetaData[];
+  nodes?: Partial<MetaData>[];
 };
 
 const { version: packageVersion } = require('../../package.json');
 const META_JSON_FIELDS = ['deployments'];
-
-// TODO Is it necessary to update the SDK util package?
-const metaCache = {
-  queryNodeVersion: packageVersion,
-  queryNodeStyle: 'subgraph',
-} as MetaData & { queryNodeStyle: 'subgraph' };
-
-async function fetchFromApi(argv: ArgsInterface): Promise<void> {
-  let health: Response;
-  let meta: Response;
-
-  const indexerUrl = argv.indexer;
-
-  try {
-    meta = await fetch(new URL(`meta`, indexerUrl));
-    const result = await meta.json();
-    Object.assign(metaCache, result);
-  } catch (e: any) {
-    metaCache.indexerHealthy = false;
-    console.warn(`Failed to fetch indexer meta, `, e.message);
-  }
-
-  try {
-    health = await fetch(new URL(`health`, indexerUrl));
-    metaCache.indexerHealthy = !!health.ok;
-  } catch (e: any) {
-    metaCache.indexerHealthy = false;
-    console.warn(`Failed to fetch indexer health, `, e.message);
-  }
-}
 
 function matchMetadataTableName(name: string): boolean {
   return METADATA_REGEX.test(name) || MULTI_METADATA_REGEX.test(name);
@@ -122,11 +91,6 @@ export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInter
       {} as { [key: string]: (typeof pgResources)[keyof typeof pgResources] }
     );
 
-    // TODO Is this feature necessary?
-    // if (args.indexer) {
-    //   setAsyncInterval(async () => await fetchFromApi(args), 10000);
-    // }
-
     return {
       typeDefs: extensionsTypeDefs,
 
@@ -145,21 +109,21 @@ export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInter
             const $metadataResult = withPgClientTransaction(
               $metadata.executor,
               $chainId,
-              async (pgClient, input) => {
-                const { rows } = await pgClient.query({
+              async (pgClient, input): Promise<Partial<MetaData>> => {
+                const rowCountEstimate = await getTableEstimate(schemaName, pgClient);
+                const { rows } = await pgClient.query<MetaEntry>({
                   text: `select value, key from "${schemaName}"."${metadataTableName}"`,
                 });
-                const result: any = {};
-                rows.forEach((item: any) => {
+                const result: Record<string, unknown> = {};
+                rows.forEach((item) => {
                   if (META_JSON_FIELDS.includes(item.key)) {
-                    result[item.key] = JSON.parse(item.value);
+                    result[item.key] = JSON.parse(item.value as string);
                   } else {
                     result[item.key] = item.value;
                   }
                 });
 
-                // TODO How to check if the field should be returned.
-                result.rowCountEstimate = await getTableEstimate(schemaName, pgClient);
+                result.rowCountEstimate = rowCountEstimate;
                 result.queryNodeVersion = packageVersion;
                 result.queryNodeStyle = 'subgraph';
                 return result;
@@ -179,12 +143,13 @@ export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInter
               pgTable.executor,
               $input.getRaw(''),
               async (pgClient, input): Promise<MetadatasConnection> => {
+                const rowCountEstimate = await getTableEstimate(schemaName, pgClient);
                 const nodes = await Promise.all(
-                  metadataTables.map(async (tableName) => {
+                  metadataTables.map(async (tableName): Promise<Partial<MetaData>> => {
                     const { rows } = await pgClient.query({
                       text: `select value, key from "${schemaName}"."${tableName}"`,
                     });
-                    const result: any = {};
+                    const result: Record<string, unknown> = {};
                     rows.forEach((item: any) => {
                       if (META_JSON_FIELDS.includes(item.key)) {
                         result[item.key] = JSON.parse(item.value);
@@ -193,8 +158,7 @@ export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInter
                       }
                     });
 
-                    // TODO How to check if the field should be returned.
-                    result.rowCountEstimate = await getTableEstimate(schemaName, pgClient);
+                    result.rowCountEstimate = rowCountEstimate;
                     result.queryNodeVersion = packageVersion;
                     result.queryNodeStyle = 'subgraph';
                     return result;

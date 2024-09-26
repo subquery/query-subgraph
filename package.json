@@ -25,7 +25,6 @@
     "@types/yargs": "^17.0.33",
     "dotenv": "^16.4.5",
     "eslint": "^8.8.0",
-    "node-fetch": "^2.6.11",
     "postgraphile": "^5.0.0-beta.28",
     "yargs": "latest"
   },
@@ -35,7 +34,6 @@
     "@geut/chan": "^3.2.9",
     "@tsconfig/node20": "^20.1.4",
     "@types/jest": "^29.5.12",
-    "@types/node-fetch": "^2.6.11",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "5",
     "eslint-config-prettier": "^8.3.0",
