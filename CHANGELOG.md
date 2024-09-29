@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Support subqery _metadata query(#4)
+- GraphiQL control flag - `playground`
 
 ### Fixed
 - Bigint query type not match

@@ -41,7 +41,12 @@ export function genPreset(args: ArgsInterface) {
   const subqueryMetadataPlugin = CreateSubqueryMetadataPlugin(pgSchema, args);
   const preset: GraphileConfig.Preset = {
     extends: [PostGraphileAmberPreset, PgSimplifyInflectionPreset],
-    grafserv: { port: DEFAULT_PORT },
+    grafserv: {
+      port: DEFAULT_PORT,
+      graphiql: args.playground,
+      graphiqlOnGraphQLGET: false,
+      graphqlPath: '/',
+    },
     pgServices: [
       makePgService({
         connectionString: pgConnection,
