@@ -44,6 +44,7 @@ export function genPreset(args: ArgsInterface) {
     grafserv: {
       port: DEFAULT_PORT,
       graphiql: args.playground,
+      graphiqlPath: '/graphiql',
       graphiqlOnGraphQLGET: false,
       graphqlPath: '/',
     },
