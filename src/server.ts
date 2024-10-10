@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0
 
 import { createServer } from 'node:http';
+import express from 'express';
+import { grafserv } from 'grafserv/express/v4';
 import { postgraphile } from 'postgraphile';
-import { grafserv } from 'postgraphile/grafserv/node';
+// import { grafserv } from 'postgraphile/grafserv/node';
 import { genPreset, ArgsInterface } from './config/index';
 
 export function startServer(args: ArgsInterface) {
@@ -11,12 +13,23 @@ export function startServer(args: ArgsInterface) {
   const pgl = postgraphile(preset);
   const serv = pgl.createServ(grafserv);
 
-  const server = createServer();
+  const app = express();
+  app.use((req, res, next) => {
+    console.log(req.url);
+    if (req.url === '/.well-known/apollo/server-health') {
+      res.setHeader('Content-Type', 'application/health+json');
+      res.end('{"status":"pass"}');
+      return;
+    }
+    next();
+  });
+  const server = createServer(app);
+
   server.on('error', (e) => {
     console.error(e);
   });
 
-  serv.addTo(server).catch((e) => {
+  serv.addTo(app, server).catch((e) => {
     console.error(e);
     process.exit(1);
   });
