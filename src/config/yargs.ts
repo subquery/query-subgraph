@@ -28,6 +28,7 @@ export const yargsOptions = {
     demandOption: false,
     describe: 'Enable graphql playground',
     type: 'boolean',
+    default: false,
   },
   // TODO
   'query-limit': {
