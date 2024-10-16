@@ -14,6 +14,7 @@ import { ArgFilterLogicalOperatorsPlugin } from '../plugins/filter/ArgFilterLogi
 import { ArgFilterPlugin } from '../plugins/filter/ArgFilterPlugin';
 import { OrderByAttributesPlugin } from '../plugins/filter/OrderByAttributesPlugin';
 import { CreateMetadataPlugin } from '../plugins/GetMetadataPlugin';
+import { CreateSubqueryMetadataPlugin } from '../plugins/GetSubqueryMetadataPlugin';
 import historicalPlugins from '../plugins/historical';
 import { OffsetToSkipPlugin } from '../plugins/OffsetToSkipPlugin';
 import { PgIdToNodeIdPlugin } from '../plugins/PgIdToNodeIdPlugin';
@@ -37,9 +38,16 @@ export function genPreset(args: ArgsInterface) {
 
   const SchemaSmartTagsPlugin = CreateSchemaSmartTagsPlugin(pgSchema);
   const metadataPlugin = CreateMetadataPlugin(pgSchema);
+  const subqueryMetadataPlugin = CreateSubqueryMetadataPlugin(pgSchema, args);
   const preset: GraphileConfig.Preset = {
     extends: [PostGraphileAmberPreset, PgSimplifyInflectionPreset],
-    grafserv: { port: DEFAULT_PORT },
+    grafserv: {
+      port: DEFAULT_PORT,
+      graphiql: args.playground,
+      graphiqlPath: '/graphiql',
+      graphiqlOnGraphQLGET: false,
+      graphqlPath: '/',
+    },
     pgServices: [
       makePgService({
         connectionString: pgConnection,
@@ -62,6 +70,7 @@ export function genPreset(args: ArgsInterface) {
       SchemaSmartTagsPlugin,
       ...historicalPlugins,
       metadataPlugin,
+      subqueryMetadataPlugin,
       PgRowByVirtualIdPlugin,
       PgIdToNodeIdPlugin,
       ArgFilterPlugin,

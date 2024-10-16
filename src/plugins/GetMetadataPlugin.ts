@@ -29,6 +29,7 @@ type MetaEntry = { key: string; value: MetaType };
 
 export function CreateMetadataPlugin(schemaName: string) {
   return makeExtendSchemaPlugin((build) => {
+    // TODO Only handled the single-chain scenario, multi-chains may have unexpected results.
     const metadata = build.input.pgRegistry.pgResources._metadata;
 
     return {
