@@ -124,7 +124,7 @@ describe("subgraph plugin test", () => {
       queryTimeout: '3000',
     } as ArgsInterface);
 
-    apolloClient = new ApolloClient({ uri: 'http://localhost:3001/graphql', cache: new InMemoryCache({ addTypename: false }) });
+    apolloClient = new ApolloClient({ uri: 'http://localhost:3001', cache: new InMemoryCache({ addTypename: false }) });
   });
 
   afterAll(async () => {
@@ -504,7 +504,6 @@ describe("subgraph plugin test", () => {
             startHeight
             indexerHealthy
             indexerNodeVersion
-            queryNodeVersion
             evmChainId
             deployments
             lastFinalizedVerifiedHeight
@@ -540,7 +539,6 @@ describe("subgraph plugin test", () => {
           "lastProcessedTimestamp": "1725960100839",
           "latestSyncedPoiHeight": null,
           "queryNodeStyle": "subgraph",
-          "queryNodeVersion": "0.1.0",
           "specName": "polkadot",
           "startHeight": 1,
           "targetHeight": 22472571,

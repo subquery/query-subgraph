@@ -5,7 +5,6 @@ import { createServer } from 'node:http';
 import express from 'express';
 import { grafserv } from 'grafserv/express/v4';
 import { postgraphile } from 'postgraphile';
-// import { grafserv } from 'postgraphile/grafserv/node';
 import { genPreset, ArgsInterface } from './config/index';
 
 export function startServer(args: ArgsInterface) {
@@ -15,7 +14,6 @@ export function startServer(args: ArgsInterface) {
 
   const app = express();
   app.use((req, res, next) => {
-    console.log(req.url);
     if (req.url === '/.well-known/apollo/server-health') {
       res.setHeader('Content-Type', 'application/health+json');
       res.end('{"status":"pass"}');
