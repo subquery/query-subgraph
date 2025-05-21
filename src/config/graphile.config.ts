@@ -24,15 +24,15 @@ import { ArgsInterface } from './yargs';
 
 dotenv.config();
 
-export function genPreset(args: ArgsInterface) {
+export function genPreset(args: ArgsInterface): GraphileConfig.Preset {
   const DEFAULT_PORT = 3000;
   const pgConnection = util.format(
     'postgres://%s:%s@%s:%s/%s',
-    process.env.DB_USER,
-    process.env.DB_PASS,
-    process.env.DB_HOST,
-    process.env.DB_PORT,
-    process.env.DB_DATABASE
+    process.env.DB_USER ?? 'postgres',
+    process.env.DB_PASS ?? 'postgres',
+    process.env.DB_HOST ?? '127.0.0.1',
+    process.env.DB_PORT ?? 5432,
+    process.env.DB_DATABASE ?? 'postgres'
   );
   const pgSchema: string = args.name ?? process.env.PG_SCHEMA ?? 'public';
 
@@ -54,6 +54,9 @@ export function genPreset(args: ArgsInterface) {
         schemas: pgSchema,
       }),
     ],
+    // gather: {
+    //   pgFakeConstraintsAutofixForeignKeyUniqueness: true, // TODO this should be removed long term
+    // },
     grafast: {
       explain: args.queryExplain, // GOOD to have in dev env
       context: {
