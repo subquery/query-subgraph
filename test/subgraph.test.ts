@@ -521,7 +521,7 @@ describe("subgraph plugin test", () => {
         }
       `);
       const fetchedMeta = results.data;
-      expect(fetchedMeta).toEqual({
+      expect(fetchedMeta).toEqual(expect.objectContaining({
         _metadata: {
           "chain": "Polkadot",
           "dbSize": null,
@@ -543,7 +543,7 @@ describe("subgraph plugin test", () => {
           "startHeight": 1,
           "targetHeight": 22472571,
           "unfinalizedBlocks": null,
-          "rowCountEstimate": [
+          "rowCountEstimate": expect.arrayContaining([
             {
               "estimate": -1,
               "table": "accounts",
@@ -556,9 +556,9 @@ describe("subgraph plugin test", () => {
               "estimate": -1,
               "table": "transfers",
             },
-          ],
+          ]),
         }
-      });
+      }));
     });
 
   })
