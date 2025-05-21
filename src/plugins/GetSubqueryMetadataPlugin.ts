@@ -1,7 +1,6 @@
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import { URL } from 'url';
 import {
   getMetadataTableName,
   MetaData,
@@ -76,7 +75,7 @@ async function getTableEstimate(schemaName: string, pgClient: PgClient) {
   return rows;
 }
 
-export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInterface) {
+export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInterface): GraphileConfig.Plugin {
   return makeExtendSchemaPlugin((build) => {
     // Find all metadata table
     const pgResources = build.input.pgRegistry.pgResources;

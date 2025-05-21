@@ -1,13 +1,13 @@
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import { createServer } from 'node:http';
+import { createServer, Server } from 'node:http';
 import express from 'express';
 import { grafserv } from 'grafserv/express/v4';
 import { postgraphile } from 'postgraphile';
 import { genPreset, ArgsInterface } from './config/index';
 
-export function startServer(args: ArgsInterface) {
+export function startServer(args: ArgsInterface): Server {
   const preset = genPreset(args);
   const pgl = postgraphile(preset);
   const serv = pgl.createServ(grafserv);
