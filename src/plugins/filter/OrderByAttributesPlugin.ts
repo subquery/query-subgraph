@@ -1,34 +1,35 @@
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import type { PgSelectStep, PgCodec} from "@dataplan/pg";
+import type { PgSelectStep, PgCodec, PgSelectQueryBuilder } from '@dataplan/pg';
 import {
   GraphQLInputType,
   GraphQLOutputType,
   GraphQLNamedType,
   ThunkObjMap,
   GraphQLEnumValueConfig,
+} from 'graphql';
+import { FieldArg } from 'postgraphile/grafast';
+import { makeAssertAllowed } from './utils';
 
-} from "graphql";
-
-const OrderDirectionFieldName = 'OrderDirection'
+const OrderDirectionFieldName = 'OrderDirection';
 
 export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
-  name: "OrderByAttributesPlugin",
-  version: "1.0.0",
+  name: 'OrderByAttributesPlugin',
+  version: '1.0.0',
 
   inflection: {
     add: {
       tableOrderByType(options, typeName) {
         return this.upperCamelCase(`${typeName}-order-by`);
-      }
-    }
+      },
+    },
   },
 
   schema: {
     hooks: {
       init: {
-        after: ["PgCodecs"],
+        after: ['PgCodecs'],
         callback(_, build) {
           const { EXPORTABLE, inflection, sql } = build;
 
@@ -36,16 +37,16 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
             if (!pgCodec.attributes) continue;
 
             // skip metadata tables
-            const nodeTypeName = build.getGraphQLTypeNameByPgCodec(pgCodec, "output");
+            const nodeTypeName = build.getGraphQLTypeNameByPgCodec(pgCodec, 'output');
             if (!nodeTypeName) continue;
 
-            const orderValues: ThunkObjMap<GraphQLEnumValueConfig> = {}
+            const orderValues: ThunkObjMap<GraphQLEnumValueConfig> = {};
             const tableOrderByTypeName = inflection.tableOrderByType(nodeTypeName);
 
             for (const field of Object.keys(pgCodec.attributes)) {
               if (field.startsWith('_')) continue;
 
-              orderValues[inflection.camelCase(field)] = { value: field }
+              orderValues[inflection.camelCase(field)] = { value: field };
             }
 
             build.registerEnumType(
@@ -56,12 +57,11 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
                 values: orderValues,
                 description: `order by Enum types.`,
                 args: {
-                  tableOrderByTypeName
-                }
+                  tableOrderByTypeName,
+                },
               }),
-              "OrderByAttributesPlugin"
+              'OrderByAttributesPlugin'
             );
-
           }
 
           build.registerEnumType(
@@ -75,23 +75,18 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
               },
               description: `order by direction Enum types.`,
               args: {
-                OrderDirectionFieldName
-              }
+                OrderDirectionFieldName,
+              },
             }),
-            "OrderByAttributesPlugin"
+            'OrderByAttributesPlugin'
           );
 
           return _;
         },
       },
 
-
       GraphQLObjectType_fields_field_args(args, build, context) {
-        const {
-          EXPORTABLE,
-          extend,
-          inflection,
-        } = build;
+        const { EXPORTABLE, extend, inflection } = build;
         const {
           Self,
           scope: {
@@ -101,90 +96,85 @@ export const OrderByAttributesPlugin: GraphileConfig.Plugin = {
             pgFieldResource: resource,
           },
         } = context;
-        const shouldAddFilter =
-          isPgFieldConnection || isPgFieldSimpleCollection;
+        const shouldAddFilter = isPgFieldConnection || isPgFieldSimpleCollection;
         if (!shouldAddFilter) return args;
 
         const codec = (pgFieldCodec ?? resource?.codec) as PgCodec;
         if (!codec) return args;
 
         const returnCodec = codec;
-        const nodeType = build.getGraphQLTypeByPgCodec(
-          returnCodec,
-          "output"
-        ) as GraphQLOutputType & GraphQLNamedType;
+        const nodeType = build.getGraphQLTypeByPgCodec(returnCodec, 'output') as GraphQLOutputType &
+          GraphQLNamedType;
         if (!nodeType) {
           return args;
         }
         const nodeTypeName = nodeType.name;
         const orderByTypeName = inflection.tableOrderByType(nodeTypeName);
 
-        const OrderByType = build.getTypeByName(orderByTypeName) as
-          | GraphQLInputType
-          | undefined;
+        const OrderByType = build.getTypeByName(orderByTypeName) as GraphQLInputType | undefined;
         if (!OrderByType) {
           return args;
         }
 
         const attributeCodec =
-          resource?.parameters && !resource?.codec.attributes
-            ? resource.codec
-            : null;
+          resource?.parameters && !resource?.codec.attributes ? resource.codec : null;
+
+        const OrderDirectionType = build.getTypeByName(OrderDirectionFieldName) as
+          | GraphQLInputType
+          | undefined;
+        if (!OrderDirectionType) {
+          return args;
+        }
+
+        const assertAllowed = makeAssertAllowed(build);
 
         return extend(
           args,
           {
             orderBy: {
-              description: "order by attributes to be used against object types.",
+              description: 'order by attributes to be used against object types.',
               type: OrderByType,
-              autoApplyAfterParentPlan: true,
               applyPlan: EXPORTABLE(
                 (attributeCodec) =>
-                  function (
-                    $parent: any,
-                    $pgSelect: PgSelectStep,
-                    fieldArgs: any
-                  ) {
-                    $parent._orderField = fieldArgs.getRaw().eval()
+                  function ($parent: any, $pgSelect: PgSelectStep, fieldArgs: any) {
+                    $parent._orderField = fieldArgs.getRaw().eval();
                   },
 
                 [attributeCodec]
               ),
             },
             orderDirection: {
-              description: "Specifies the direction in which to order the results.",
-              type: build.getTypeByName(OrderDirectionFieldName),
-              autoApplyAfterParentPlan: true,
+              description: 'Specifies the direction in which to order the results.',
+              type: OrderDirectionType,
               applyPlan: EXPORTABLE(
                 () =>
-                  function (
-                    $parent: any,
-                    $pgSelect: PgSelectStep,
-                    fieldArgs: any
-                  ) {
-                    const orderField = $parent._orderField
+                  function ($parent: any, $pgSelect: PgSelectStep, fieldArgs: FieldArg) {
+                    const orderField = $parent._orderField;
                     if (!orderField) {
-                      throw new Error('orderBy field is required')
+                      throw new Error('orderBy field is required');
                     }
 
-                    const orderDirection = fieldArgs.getRaw()
+                    fieldArgs.apply(
+                      $pgSelect,
+                      (queryBuilder: PgSelectQueryBuilder, value: 'ASC' | 'DESC'): undefined => {
+                        assertAllowed(value, 'object');
+                        if (value === null) return;
 
-                    const $orderBy = $pgSelect.orderBy({
-                      attribute: orderField,
-                      direction: orderDirection.eval(),
-                    });
-
-                    fieldArgs.apply($orderBy);
+                        queryBuilder.orderBy({
+                          attribute: orderField,
+                          direction: value,
+                        });
+                      }
+                    );
                   },
 
                 []
               ),
-
             },
           },
           `Adding orderBy argument to ${orderByTypeName}`
         );
       },
     },
-  }
+  },
 };

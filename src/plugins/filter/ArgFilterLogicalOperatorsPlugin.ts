@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 // refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterLogicalOperatorsPlugin.ts
-import type { PgConditionStep } from '@dataplan/pg';
+import type { PgCondition } from '@dataplan/pg';
 
 export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin = {
   name: 'ArgFilterLogicalOperatorsPlugin',
@@ -38,9 +38,9 @@ export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin = {
             {
               description: `Checks for all expressions in this list.`,
               type: new GraphQLList(new GraphQLNonNull(Self)),
-              applyPlan: EXPORTABLE(
+              apply: EXPORTABLE(
                 () =>
-                  function ($where: PgConditionStep<any>, fieldArgs) {
+                  function ($where: PgCondition<any>, fieldArgs: any) {
                     const $and = $where.andPlan();
                     // No need for this more correct form, easier to read if it's flatter.
                     // fieldArgs.apply(() => $and.andPlan());
@@ -58,9 +58,9 @@ export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin = {
             {
               description: `Checks for any expressions in this list.`,
               type: new GraphQLList(new GraphQLNonNull(Self)),
-              applyPlan: EXPORTABLE(
+              apply: EXPORTABLE(
                 () =>
-                  function ($where: PgConditionStep<any>, fieldArgs) {
+                  function ($where: PgCondition<any>, fieldArgs: any) {
                     // TODO Why is the result using AND logic?
                     const $or = $where.orPlan();
                     // Every entry is added to the `$or`, but the entries themselves should use an `and`.
@@ -78,9 +78,9 @@ export const ArgFilterLogicalOperatorsPlugin: GraphileConfig.Plugin = {
             {
               description: `Negates the expression.`,
               type: Self,
-              applyPlan: EXPORTABLE(
+              apply: EXPORTABLE(
                 () =>
-                  function ($where: PgConditionStep<any>, fieldArgs) {
+                  function ($where: PgCondition<any>, fieldArgs: any) {
                     const $not = $where.notPlan();
                     const $and = $not.andPlan();
                     fieldArgs.apply($and);

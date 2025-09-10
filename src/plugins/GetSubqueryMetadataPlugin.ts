@@ -66,16 +66,19 @@ function matchMetadataTableName(name: string): boolean {
 async function getTableEstimate(schemaName: string, pgClient: PgClient) {
   const { rows } = await pgClient.query<TableEstimate>({
     text: `select relname as table , reltuples::bigint as estimate from pg_class
-        where 
+        where
           relnamespace in (select oid from pg_namespace where nspname = $1)
-        and 
+        and
           relname in (select table_name from information_schema.tables where table_schema = $1)`,
     values: [schemaName],
   });
   return rows;
 }
 
-export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInterface): GraphileConfig.Plugin {
+export function CreateSubqueryMetadataPlugin(
+  schemaName: string,
+  args: ArgsInterface
+): GraphileConfig.Plugin {
   return makeExtendSchemaPlugin((build) => {
     // Find all metadata table
     const pgResources = build.input.pgRegistry.pgResources;
@@ -95,7 +98,7 @@ export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInter
 
       plans: {
         Query: {
-          _metadata($parent, { $chainId }, ...args) {
+          _metadata($parent: any, { $chainId }: any, ...args: any[]) {
             const totalCountInput = $parent.get('totalCount');
             if ($chainId === undefined) {
               return;
@@ -131,7 +134,7 @@ export function CreateSubqueryMetadataPlugin(schemaName: string, args: ArgsInter
 
             return $metadataResult;
           },
-          _metadatas(_, $input) {
+          _metadatas(_: unknown, $input: any) {
             const totalCount = Object.keys(metadataPgResource).length;
             const pgTable = metadataPgResource[metadataTables[0]];
             if (!totalCount || !pgTable) {

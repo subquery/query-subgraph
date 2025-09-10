@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0
 
 // refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterAttributesPlugin.ts
-import type { PgConditionStep } from '@dataplan/pg';
-import { getFieldDefine, getSupportOperators, Operators } from './utils';
+import type { PgCondition } from '@dataplan/pg';
+import { getFieldDefine, getSupportOperators, isEmpty, Operators } from './utils';
 
 export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
   name: 'ArgFilterAttributesPlugin',
@@ -56,23 +56,21 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
                   {
                     type: fieldDefine.type,
                     description: 'filter condition field',
-                    inputPlan: EXPORTABLE(
-                      (escapeLikeWildcards) => (input) => {
-                        return `%${escapeLikeWildcards(input)}%` as any;
-                      },
-                      [escapeLikeWildcards]
-                    ),
+                    // TODO unable to find migration for this
+                    // inputPlan: EXPORTABLE(
+                    //   (escapeLikeWildcards) => (input: unknown) => {
+                    //     return `%${escapeLikeWildcards(input)}%` as any;
+                    //   },
+                    //   [escapeLikeWildcards]
+                    // ),
                     // eslint-disable-next-line complexity
-                    applyPlan: EXPORTABLE(
+                    apply: EXPORTABLE(
                       () =>
                         /* eslint-disable complexity */
-                        function ($where: PgConditionStep<any>, fieldArgs) {
-                          const $input = fieldArgs.getRaw();
-                          if ($input.evalIs(undefined)) {
+                        function ($where: PgCondition<any>, inputValue: any) {
+                          if (isEmpty(inputValue)) {
                             return;
                           }
-
-                          let inputValue = $input.eval();
                           switch (operator) {
                             case Operators.CONTAINS:
                             case Operators.NOT_CONTAINS:

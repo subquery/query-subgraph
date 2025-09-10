@@ -35,12 +35,13 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
 
   schema: {
     entityBehavior: {
-      pgCodec: 'select filter',
+      pgCodec: ['select', 'filter'],
       pgResource: {
-        provides: ['default'],
-        before: ['inferred', 'override'],
-        callback(behavior, resource) {
-          return [resource.parameters ? '' : 'filter', behavior];
+        inferred(behavior, entity) {
+          if (entity.parameters) {
+            return [behavior];
+          }
+          return ['filter', behavior];
         },
       },
     },
@@ -110,9 +111,8 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                   type: GraphQLFloat,
                   // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
                   defaultValue: 9223372036854775807,
-                  autoApplyAfterParentPlan: true,
                   applyPlan: (_, $pgSelect: PgSelectStep, val, four) => {
-                    const context = val.get().operationPlan.context;
+                    const context = val.getRaw().operationPlan.context;
                     const height = context._block_height;
 
                     if (!height) {
@@ -136,6 +136,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
       // Apply block_range to top level entity
       GraphQLObjectType_fields_field_args: (args, build, context) => {
         const { Self, scope } = context;
+        const { EXPORTABLE } = build;
 
         const {
           isPgFieldSimpleCollection,
@@ -189,21 +190,35 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                 'A block height to be used in determining which block range values should be returned',
                 'arg'
               ),
-              autoApplyAfterParentPlan: true,
               type: tableBlockHeightType,
-
-              applyPlan: (_, $pgSelect: PgSelectStep, val, four) => {
-                const height = build.sql
-                  .fragment`${build.sql.value(val.getRaw('number').eval())}::bigint`;
-                const context = val.get().operationPlan.context;
-                context._block_height = height;
-                if (!height) {
-                  return;
-                }
-                const alias = $pgSelect.alias;
-                const rangeQuery = makeRangeQuery(alias, height, build.sql);
-                $pgSelect.where(rangeQuery);
-              },
+              applyPlan: EXPORTABLE(
+                () =>
+                  function (_: unknown, $pgSelect: PgSelectStep, value: any) {
+                    const height = build.sql
+                      .fragment`${build.sql.value(value.getRaw('number').eval())}::bigint`;
+                    const context = value.getRaw().operationPlan.context;
+                    context._block_height = height;
+                    if (!height) {
+                      return;
+                    }
+                    const alias = $pgSelect.alias;
+                    const rangeQuery = makeRangeQuery(alias, height, build.sql);
+                    $pgSelect.where(rangeQuery);
+                  },
+                []
+              ),
+              // applyPlan: (_, $pgSelect: PgSelectStep, val, four) => {
+              //   const height = build.sql
+              //     .fragment`${build.sql.value(val.getRaw('number').eval())}::bigint`;
+              //   const context = val.getRaw().operationPlan.context;
+              //   context._block_height = height;
+              //   if (!height) {
+              //     return;
+              //   }
+              //   const alias = $pgSelect.alias;
+              //   const rangeQuery = makeRangeQuery(alias, height, build.sql);
+              //   $pgSelect.where(rangeQuery);
+              // },
             },
           },
           `Adding 'blockRange' argument to args`

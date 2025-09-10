@@ -163,7 +163,7 @@ return function (resource) {
                         function plan(_$root: any, args: FieldArgs) {
                           const spec = Object.create(null);
                           for (const attributeName in detailsByAttributeName) {
-                            spec[attributeName] = args.get(
+                            spec[attributeName] = args.getRaw(
                               detailsByAttributeName[attributeName].graphqlName
                             );
                           }

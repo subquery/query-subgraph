@@ -2,9 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0
 
 // refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterPlugin.ts
-import type { PgSelectStep, PgCodec } from '@dataplan/pg';
-import type { ConnectionStep, FieldArgs } from 'grafast';
+import {
+  type PgSelectStep,
+  type PgCodec,
+  type PgSelectQueryBuilder,
+  // PgCondition,
+} from '@dataplan/pg';
+import type { ConnectionStep, FieldArg } from 'grafast';
 import { GraphQLInputType, GraphQLOutputType, GraphQLNamedType } from 'graphql';
+import { makeAssertAllowed } from './utils';
 
 export const ArgFilterPlugin: GraphileConfig.Plugin = {
   name: 'ArgFilterPlugin',
@@ -54,7 +60,12 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
 
       // Add `filter` input argument to connection and simple collection types
       GraphQLObjectType_fields_field_args(args, build, context) {
-        const { EXPORTABLE, extend, inflection } = build;
+        const {
+          EXPORTABLE,
+          dataplanPg: { PgCondition },
+          extend,
+          inflection,
+        } = build;
         const {
           Self,
           scope: {
@@ -86,53 +97,67 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
           return args;
         }
 
+        const assertAllowed = makeAssertAllowed(build);
+
         const attributeCodec =
           resource?.parameters && !resource?.codec.attributes ? resource.codec : null;
 
         return extend(
           args,
           {
+            // Renamed from "filter" in original
             where: {
               description:
                 'A filter to be used in determining which values should be returned by the collection.',
               type: FilterType,
-              autoApplyAfterParentPlan: true,
               ...(isPgFieldConnection
                 ? {
                     applyPlan: EXPORTABLE(
-                      (attributeCodec) =>
+                      (PgCondition, assertAllowed, attributeCodec) =>
                         function (
                           _: any,
-                          $connection: ConnectionStep<any, any, any, PgSelectStep>,
-                          fieldArgs: FieldArgs
+                          $connection: ConnectionStep<any, any, any, any /*PgSelectStep*/>,
+                          fieldArg: FieldArg
                         ) {
-                          // assertAllowed(fieldArgs, "object");
                           const $pgSelect = $connection.getSubplan();
-                          const $where = $pgSelect.wherePlan();
-                          if (attributeCodec) {
-                            $where.extensions.pgFilterAttribute = {
-                              codec: attributeCodec,
-                            };
-                          }
-                          fieldArgs.apply($where);
+                          fieldArg.apply(
+                            $pgSelect as any,
+                            (queryBuilder: PgSelectQueryBuilder, value: any /*object | null */) => {
+                              assertAllowed(value, 'object');
+                              if (value === null) return;
+                              const condition = new PgCondition(queryBuilder);
+                              if (attributeCodec) {
+                                condition.extensions.pgFilterAttribute = {
+                                  codec: attributeCodec,
+                                };
+                              }
+                              return condition;
+                            }
+                          );
                         },
-                      [attributeCodec]
+                      [PgCondition, assertAllowed, attributeCodec]
                     ),
                   }
                 : {
                     applyPlan: EXPORTABLE(
-                      (attributeCodec) =>
-                        function (_: any, $pgSelect: PgSelectStep, fieldArgs: any) {
-                          // assertAllowed(fieldArgs, "object");
-                          const $where = $pgSelect.wherePlan();
-                          if (attributeCodec) {
-                            $where.extensions.pgFilterAttribute = {
-                              codec: attributeCodec,
-                            };
-                          }
-                          fieldArgs.apply($where);
+                      (PgCondition, assertAllowed, attributeCodec) =>
+                        function (_: any, $pgSelect: PgSelectStep, fieldArg: FieldArg) {
+                          fieldArg.apply(
+                            $pgSelect,
+                            (queryBuilder: PgSelectQueryBuilder, value: any /*object | null*/) => {
+                              assertAllowed(value, 'object');
+                              if (value === null) return;
+                              const condition = new PgCondition(queryBuilder);
+                              if (attributeCodec) {
+                                condition.extensions.pgFilterAttribute = {
+                                  codec: attributeCodec,
+                                };
+                              }
+                              return condition;
+                            }
+                          );
                         },
-                      [attributeCodec]
+                      [PgCondition, assertAllowed, attributeCodec]
                     ),
                   }),
             },
