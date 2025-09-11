@@ -2,13 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0
 
 // refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterPlugin.ts
-import {
-  type PgSelectStep,
-  type PgCodec,
-  type PgSelectQueryBuilder,
-  // PgCondition,
-} from '@dataplan/pg';
-import type { ConnectionStep, FieldArg } from 'grafast';
+import { type PgSelectStep, type PgCodec, type PgSelectQueryBuilder } from '@dataplan/pg';
+import type { ConnectionStep, FieldArg, Step } from 'grafast';
 import { GraphQLInputType, GraphQLOutputType, GraphQLNamedType } from 'graphql';
 import { makeAssertAllowed } from './utils';
 
@@ -28,7 +23,7 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
       init: {
         after: ['PgCodecs'],
         callback(_, build) {
-          const { EXPORTABLE, inflection, sql } = build;
+          const { inflection } = build;
 
           // Create filter type for all column-having codecs
           for (const pgCodec of build.allPgCodecs) {
@@ -115,7 +110,7 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
                     applyPlan: EXPORTABLE(
                       (PgCondition, assertAllowed, attributeCodec) =>
                         function (
-                          _: any,
+                          _: Step,
                           $connection: ConnectionStep<any, any, any, any /*PgSelectStep*/>,
                           fieldArg: FieldArg
                         ) {
@@ -141,10 +136,10 @@ export const ArgFilterPlugin: GraphileConfig.Plugin = {
                 : {
                     applyPlan: EXPORTABLE(
                       (PgCondition, assertAllowed, attributeCodec) =>
-                        function (_: any, $pgSelect: PgSelectStep, fieldArg: FieldArg) {
+                        function (_: Step, $pgSelect: PgSelectStep, fieldArg: FieldArg) {
                           fieldArg.apply(
                             $pgSelect,
-                            (queryBuilder: PgSelectQueryBuilder, value: any /*object | null*/) => {
+                            (queryBuilder: PgSelectQueryBuilder, value: object | null) => {
                               assertAllowed(value, 'object');
                               if (value === null) return;
                               const condition = new PgCondition(queryBuilder);
