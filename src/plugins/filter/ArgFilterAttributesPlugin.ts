@@ -26,7 +26,7 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
         return build;
       },
       GraphQLInputObjectType_fields(args, build, context) {
-        const { EXPORTABLE, escapeLikeWildcards, sql } = build;
+        const { EXPORTABLE, sql } = build;
         const {
           fieldWithHooks,
           scope: { isPgConnectionFilter, pgCodec },
@@ -67,7 +67,7 @@ export const ArgFilterAttributesPlugin: GraphileConfig.Plugin = {
                     apply: EXPORTABLE(
                       () =>
                         /* eslint-disable complexity */
-                        function ($where: PgCondition<any>, inputValue: any) {
+                        function ($where: PgCondition, inputValue: string) {
                           if (isEmpty(inputValue)) {
                             return;
                           }
