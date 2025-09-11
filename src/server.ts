@@ -21,6 +21,7 @@ export function startServer(args: ArgsInterface): Server {
     }
     next();
   });
+
   const server = createServer(app);
 
   server.on('error', (e) => {

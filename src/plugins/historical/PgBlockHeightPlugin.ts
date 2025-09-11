@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 // Declare the type
-import type { PgCodecWithAttributes, PgSelectStep } from '@dataplan/pg';
+import type { PgCodec, PgCodecWithAttributes, PgSelectStep } from '@dataplan/pg';
 import { GraphQLFloat, GraphQLInputObjectType } from 'graphql';
 import { makeRangeQuery } from './utils';
 
@@ -16,6 +16,16 @@ declare global {
     }
     interface ScopeInputObjectFieldsField {
       isPgBlockHeightInputField?: boolean;
+    }
+    interface Build {
+      /**
+       * A store of metadata for given codecs. Currently internal as this API
+       * may change.
+       *
+       * @internal
+       */
+      // https://github.com/graphile/crystal/blob/700a83183144ac4bfbc89b174cec82454b98780e/graphile-build/graphile-build-pg/src/plugins/PgBasicsPlugin.ts#L81
+      pgCodecMetaLookup: Map<PgCodec, unknown> /*PgCodecMetaLookup*/;
     }
   }
 }
@@ -49,9 +59,8 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
       // https://postgraphile.org/postgraphile/next/migrating-from-v4/migrating-custom-plugins/#example
       // register the new block height type
       init(_, build) {
-        const { inflection } = build;
-        // @ts-ignore
-        for (const rawCodec of build.pgCodecMetaLookup.keys()) {
+        const { inflection, pgCodecMetaLookup } = build;
+        for (const rawCodec of pgCodecMetaLookup.keys()) {
           build.recoverable(null, () => {
             // Ignore scalar codecs
             if (!rawCodec.attributes || rawCodec.isAnonymous) {
@@ -109,8 +118,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                     'arg'
                   ),
                   type: GraphQLFloat,
-                  // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
-                  defaultValue: 9223372036854775807,
+                  defaultValue: '9223372036854775807',
                   applyPlan: (_, $pgSelect: PgSelectStep, val, four) => {
                     const context = val.getRaw().operationPlan.context;
                     const height = context._block_height;
@@ -135,7 +143,7 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
 
       // Apply block_range to top level entity
       GraphQLObjectType_fields_field_args: (args, build, context) => {
-        const { Self, scope } = context;
+        const { scope } = context;
         const { EXPORTABLE } = build;
 
         const {
@@ -207,18 +215,6 @@ export const PgBlockHeightPlugin: GraphileConfig.Plugin = {
                   },
                 []
               ),
-              // applyPlan: (_, $pgSelect: PgSelectStep, val, four) => {
-              //   const height = build.sql
-              //     .fragment`${build.sql.value(val.getRaw('number').eval())}::bigint`;
-              //   const context = val.getRaw().operationPlan.context;
-              //   context._block_height = height;
-              //   if (!height) {
-              //     return;
-              //   }
-              //   const alias = $pgSelect.alias;
-              //   const rangeQuery = makeRangeQuery(alias, height, build.sql);
-              //   $pgSelect.where(rangeQuery);
-              // },
             },
           },
           `Adding 'blockRange' argument to args`

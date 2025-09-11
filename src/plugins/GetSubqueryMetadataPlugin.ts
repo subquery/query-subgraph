@@ -8,10 +8,9 @@ import {
   MULTI_METADATA_REGEX,
   TableEstimate,
 } from '@subql/utils';
-import { makeExtendSchemaPlugin, gql, ExtensionDefinition } from 'graphile-utils';
-import { PgClient, withPgClientTransaction } from 'postgraphile/@dataplan/pg';
-import { constant } from 'postgraphile/grafast';
-import { ArgsInterface } from '../config/yargs';
+import { gql, ExtensionDefinition, extendSchema } from 'graphile-utils';
+import { loadOneWithPgClient, PgClient } from 'postgraphile/@dataplan/pg';
+import { constant, FieldArgs, Step } from 'postgraphile/grafast';
 
 const extensionsTypeDefs: ExtensionDefinition['typeDefs'] = gql`
   type TableEstimate {
@@ -75,11 +74,8 @@ async function getTableEstimate(schemaName: string, pgClient: PgClient) {
   return rows;
 }
 
-export function CreateSubqueryMetadataPlugin(
-  schemaName: string,
-  args: ArgsInterface
-): GraphileConfig.Plugin {
-  return makeExtendSchemaPlugin((build) => {
+export function CreateSubqueryMetadataPlugin(schemaName: string): GraphileConfig.Plugin {
+  return extendSchema((build) => {
     // Find all metadata table
     const pgResources = build.input.pgRegistry.pgResources;
     const metadataTables = Object.keys(build.input.pgRegistry.pgResources).filter((tableName) =>
@@ -95,83 +91,83 @@ export function CreateSubqueryMetadataPlugin(
 
     return {
       typeDefs: extensionsTypeDefs,
-
-      plans: {
+      objects: {
         Query: {
-          _metadata($parent: any, { $chainId }: any, ...args: any[]) {
-            const totalCountInput = $parent.get('totalCount');
-            if ($chainId === undefined) {
-              return;
-            }
-
-            const chainId = $chainId.eval();
-            const metadataTableName = chainId ? getMetadataTableName(chainId) : '_metadata';
-            const $metadata = metadataPgResource[metadataTableName];
-            if (!$metadata) throw new Error(`Not Found Metadata, chainId: ${chainId}`);
-            const $metadataResult = withPgClientTransaction(
-              $metadata.executor,
-              $chainId,
-              async (pgClient, input): Promise<Partial<MetaData>> => {
-                const rowCountEstimate = await getTableEstimate(schemaName, pgClient);
-                const { rows } = await pgClient.query<MetaEntry>({
-                  text: `select value, key from "${schemaName}"."${metadataTableName}"`,
-                });
-                const result: Record<string, unknown> = {};
-                rows.forEach((item) => {
-                  if (META_JSON_FIELDS.includes(item.key)) {
-                    result[item.key] = JSON.parse(item.value as string);
-                  } else {
-                    result[item.key] = item.value;
-                  }
-                });
-
-                result.rowCountEstimate = rowCountEstimate;
-                result.queryNodeVersion = packageVersion;
-                result.queryNodeStyle = 'subgraph';
-                return result;
+          plans: {
+            _metadata($parent: Step, { $chainId }: FieldArgs) {
+              if ($chainId === undefined) {
+                return;
               }
-            );
 
-            return $metadataResult;
-          },
-          _metadatas(_: unknown, $input: any) {
-            const totalCount = Object.keys(metadataPgResource).length;
-            const pgTable = metadataPgResource[metadataTables[0]];
-            if (!totalCount || !pgTable) {
-              return constant({ totalCount: 0, nodes: [] });
-            }
+              const chainId = ($chainId as any).eval();
+              const metadataTableName = chainId ? getMetadataTableName(chainId) : '_metadata';
+              const $metadata = metadataPgResource[metadataTableName];
+              if (!$metadata) throw new Error(`Not Found Metadata, chainId: ${chainId}`);
 
-            const $metadataResult = withPgClientTransaction(
-              pgTable.executor,
-              $input.getRaw(''),
-              async (pgClient, input): Promise<MetadatasConnection> => {
-                const rowCountEstimate = await getTableEstimate(schemaName, pgClient);
-                const nodes = await Promise.all(
-                  metadataTables.map(async (tableName): Promise<Partial<MetaData>> => {
-                    const { rows } = await pgClient.query({
-                      text: `select value, key from "${schemaName}"."${tableName}"`,
-                    });
-                    const result: Record<string, unknown> = {};
-                    rows.forEach((item: any) => {
-                      if (META_JSON_FIELDS.includes(item.key)) {
-                        result[item.key] = JSON.parse(item.value);
-                      } else {
-                        result[item.key] = item.value;
-                      }
-                    });
+              return loadOneWithPgClient(
+                $metadata.executor,
+                $chainId,
+                async (
+                  pgClient /*, [chainId]: readonly string[] */
+                ): Promise<[MetadatasConnection]> => {
+                  const rowCountEstimate = await getTableEstimate(schemaName, pgClient);
+                  const { rows } = await pgClient.query<MetaEntry>({
+                    text: `select value, key from "${schemaName}"."${metadataTableName}"`,
+                  });
+                  const result: Record<string, unknown> = {};
+                  rows.forEach((item) => {
+                    if (META_JSON_FIELDS.includes(item.key)) {
+                      result[item.key] = JSON.parse(item.value as string);
+                    } else {
+                      result[item.key] = item.value;
+                    }
+                  });
 
-                    result.rowCountEstimate = rowCountEstimate;
-                    result.queryNodeVersion = packageVersion;
-                    result.queryNodeStyle = 'subgraph';
-                    return result;
-                  })
-                );
-
-                return { totalCount, nodes };
+                  result.rowCountEstimate = rowCountEstimate;
+                  result.queryNodeVersion = packageVersion;
+                  result.queryNodeStyle = 'subgraph';
+                  return [result];
+                }
+              );
+            },
+            // NOTE there are no tests for this
+            _metadatas(_: Step, $input: FieldArgs) {
+              const totalCount = Object.keys(metadataPgResource).length;
+              const pgTable = metadataPgResource[metadataTables[0]];
+              if (!totalCount || !pgTable) {
+                return constant({ totalCount: 0, nodes: [] });
               }
-            );
 
-            return $metadataResult;
+              return loadOneWithPgClient(
+                pgTable.executor,
+                $input.getRaw(''),
+                async (pgClient): Promise<[MetadatasConnection]> => {
+                  const rowCountEstimate = await getTableEstimate(schemaName, pgClient);
+                  const nodes = await Promise.all(
+                    metadataTables.map(async (tableName): Promise<Partial<MetaData>> => {
+                      const { rows } = await pgClient.query<{ key: string; value: string }>({
+                        text: `select value, key from "${schemaName}"."${tableName}"`,
+                      });
+                      const result: Record<string, unknown> = {};
+                      rows.forEach((item) => {
+                        if (META_JSON_FIELDS.includes(item.key)) {
+                          result[item.key] = JSON.parse(item.value);
+                        } else {
+                          result[item.key] = item.value;
+                        }
+                      });
+
+                      result.rowCountEstimate = rowCountEstimate;
+                      result.queryNodeVersion = packageVersion;
+                      result.queryNodeStyle = 'subgraph';
+                      return result;
+                    })
+                  );
+
+                  return [{ totalCount, nodes }];
+                }
+              );
+            },
           },
         },
       },
