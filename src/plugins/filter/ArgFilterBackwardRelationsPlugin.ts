@@ -3,12 +3,13 @@
 
 // refer https://github.com/graphile-contrib/postgraphile-plugin-connection-filter/blob/375f125/src/PgConnectionArgFilterBackwardRelationsPlugin.ts
 import type {
-  PgConditionStep,
+  PgCondition,
   PgCodecRelation,
   PgCodecWithAttributes,
   PgRegistry,
   PgResource,
 } from '@dataplan/pg';
+import { GraphQLInputObjectType } from 'postgraphile/graphql';
 import { makeAssertAllowed } from './utils';
 
 export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
@@ -106,7 +107,9 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
 
             const foreignTableTypeName = inflection.tableType(foreignTable.codec);
             const foreignTableFilterTypeName = inflection.tableWhereType(foreignTableTypeName);
-            const ForeignTableFilterType = build.getTypeByName(foreignTableFilterTypeName);
+            const ForeignTableFilterType = build.getTypeByName(
+              foreignTableFilterTypeName
+            ) as GraphQLInputObjectType;
             if (!ForeignTableFilterType) continue;
 
             if (typeof foreignTable.from === 'function') {
@@ -142,7 +145,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
                       () => ({
                         description: `Filter by the object’s \`${fieldName}\` relation.`,
                         type: ForeignTableFilterType,
-                        applyPlan: EXPORTABLE(
+                        apply: EXPORTABLE(
                           (
                             assertAllowed,
                             foreignTable,
@@ -151,8 +154,8 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
                             remoteAttributes,
                             sql
                           ) =>
-                            function ($where: PgConditionStep<any>, fieldArgs) {
-                              assertAllowed(fieldArgs, 'object');
+                            function ($where: PgCondition, value: object | null) {
+                              assertAllowed(value, 'object');
                               const $subQuery = $where.existsPlan({
                                 tableExpression: foreignTableExpression,
                                 alias: foreignTable.name,
@@ -167,7 +170,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
                                   )}`
                                 );
                               });
-                              fieldArgs.apply($subQuery);
+                              return $subQuery;
                             },
                           [
                             assertAllowed,
@@ -203,7 +206,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
                     () => ({
                       description: `Filter by the object’s \`${fieldName}\` relation.`,
                       type: ForeignTableFilterType,
-                      applyPlan: EXPORTABLE(
+                      apply: EXPORTABLE(
                         (
                           assertAllowed,
                           foreignTable,
@@ -212,8 +215,8 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
                           remoteAttributes,
                           sql
                         ) =>
-                          function ($where: PgConditionStep<any>, fieldArgs) {
-                            assertAllowed(fieldArgs, 'object');
+                          function ($where: PgCondition, value: object | null) {
+                            assertAllowed(value, 'object');
                             const $subQuery = $where.existsPlan({
                               tableExpression: foreignTableExpression,
                               alias: foreignTable.name,
@@ -228,7 +231,7 @@ export const ArgFilterBackwardRelationsPlugin: GraphileConfig.Plugin = {
                                 )}`
                               );
                             });
-                            fieldArgs.apply($subQuery);
+                            return $subQuery;
                           },
                         [
                           assertAllowed,

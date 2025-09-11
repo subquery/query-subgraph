@@ -1,8 +1,8 @@
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import { makeExtendSchemaPlugin, gql } from 'graphile-utils';
-import { withPgClientTransaction } from 'postgraphile/@dataplan/pg';
+import { gql, extendSchema } from 'graphile-utils';
+import { loadOneWithPgClient } from 'postgraphile/@dataplan/pg';
 
 const METADATA_TYPES = {
   deployments: 'string',
@@ -27,8 +27,8 @@ type MetaType = number | string | boolean | object;
 
 type MetaEntry = { key: string; value: MetaType };
 
-export function CreateMetadataPlugin(schemaName: string) {
-  return makeExtendSchemaPlugin((build) => {
+export function CreateMetadataPlugin(schemaName: string): GraphileConfig.Plugin {
+  return extendSchema((build) => {
     // TODO Only handled the single-chain scenario, multi-chains may have unexpected results.
     const metadata = build.input.pgRegistry.pgResources._metadata;
 
@@ -49,14 +49,12 @@ export function CreateMetadataPlugin(schemaName: string) {
           _meta: MetadataPayload
         }
       `,
-      plans: {
+      objects: {
         Query: {
-          _meta() {
-            const $executorContext = metadata.executor.context();
-            const $metadataResult = withPgClientTransaction(
-              metadata.executor,
-              $executorContext,
-              async (client, data) => {
+          plans: {
+            _meta() {
+              const $executorContext = metadata.executor.context();
+              return loadOneWithPgClient(metadata.executor, $executorContext, async (client) => {
                 const { rows } = await client.query<MetaEntry>({
                   text: `select * from "${schemaName}"."_metadata" WHERE key = ANY ($1)`,
                   values: [METADATA_KEYS],
@@ -85,10 +83,9 @@ export function CreateMetadataPlugin(schemaName: string) {
                     result.block.number = Number(row.value);
                   }
                 }
-                return result;
-              }
-            );
-            return $metadataResult;
+                return [result];
+              });
+            },
           },
         },
       },

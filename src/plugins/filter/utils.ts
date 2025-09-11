@@ -1,7 +1,6 @@
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import type { FieldArgs } from 'grafast';
 import {
   GraphQLInputType,
   GraphQLBoolean,
@@ -152,24 +151,17 @@ export function makeAssertAllowed(build: GraphileBuild.Build) {
 
   const assertAllowed = EXPORTABLE(
     (connectionFilterAllowEmptyObjectInput, connectionFilterAllowNullInput) =>
-      function (fieldArgs: FieldArgs, mode: 'list' | 'object' | 'scalar') {
-        const $raw = fieldArgs.getRaw();
-        if (
-          mode === 'object' &&
-          !connectionFilterAllowEmptyObjectInput &&
-          'evalIsEmpty' in $raw &&
-          $raw.evalIsEmpty()
-        ) {
+      function (value: unknown, mode: 'list' | 'object' | 'scalar') {
+        if (mode === 'object' && !connectionFilterAllowEmptyObjectInput && isEmpty(value)) {
           throw Object.assign(new Error('Empty objects are forbidden in filter argument input.'), {
             //TODO: mark this error as safe
           });
         }
-        if (mode === 'list' && !connectionFilterAllowEmptyObjectInput && 'evalLength' in $raw) {
-          const l = $raw.evalLength();
-          if (l !== null) {
-            for (let i = 0; i < l; i++) {
-              const $entry = $raw.at(i);
-              if ('evalIsEmpty' in $entry && $entry.evalIsEmpty()) {
+        if (mode === 'list' && !connectionFilterAllowEmptyObjectInput) {
+          const arr = value as any[] | null | undefined;
+          if (arr) {
+            for (let i = 0; i < arr.length; i++) {
+              if (isEmpty(arr[i])) {
                 throw Object.assign(
                   new Error('Empty objects are forbidden in filter argument input.'),
                   {
@@ -181,7 +173,7 @@ export function makeAssertAllowed(build: GraphileBuild.Build) {
           }
         }
         // For all modes, check null
-        if (!connectionFilterAllowNullInput && $raw.evalIs(null)) {
+        if (!connectionFilterAllowNullInput && value === null) {
           throw Object.assign(new Error('Null literals are forbidden in filter argument input.'), {
             //TODO: mark this error as safe
           });
@@ -190,4 +182,8 @@ export function makeAssertAllowed(build: GraphileBuild.Build) {
     [connectionFilterAllowEmptyObjectInput, connectionFilterAllowNullInput]
   );
   return assertAllowed;
+}
+
+export function isEmpty(o: unknown): o is Record<string, never> {
+  return typeof o === 'object' && o !== null && Object.keys(o).length === 0;
 }

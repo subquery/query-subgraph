@@ -38,7 +38,7 @@ export function genPreset(args: ArgsInterface): GraphileConfig.Preset {
 
   const SchemaSmartTagsPlugin = CreateSchemaSmartTagsPlugin(pgSchema);
   const metadataPlugin = CreateMetadataPlugin(pgSchema);
-  const subqueryMetadataPlugin = CreateSubqueryMetadataPlugin(pgSchema, args);
+  const subqueryMetadataPlugin = CreateSubqueryMetadataPlugin(pgSchema);
   const preset: GraphileConfig.Preset = {
     extends: [PostGraphileAmberPreset, PgSimplifyInflectionPreset],
     grafserv: {

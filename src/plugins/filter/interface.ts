@@ -1,17 +1,12 @@
 // Copyright 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0
 
-import type { PgResource, PgCodec, PgCodecAttribute } from "@dataplan/pg";
-import type { SQL } from "pg-sql2";
+import type { PgResource, PgCodec, PgCodecAttribute } from '@dataplan/pg';
+import type { SQL } from 'pg-sql2';
 
-export type OperatorsCategory =
-  | "Array"
-  | "Range"
-  | "Enum"
-  | "Domain"
-  | "Scalar";
+export type OperatorsCategory = 'Array' | 'Range' | 'Enum' | 'Domain' | 'Scalar';
 
-export const $$filters = Symbol("filters");
+export const $$filters = Symbol('filters');
 
 declare global {
   namespace GraphileBuild {
@@ -23,21 +18,14 @@ declare global {
         table: PgCodec<any, any, any, any, any, any, any>,
         foreignTable: PgResource<any, any, any, any>
       ): string;
-      filterSingleRelationByKeysBackwardsFieldName(
-        this: Inflection,
-        fieldName: string
-      ): string;
-      filterManyRelationByKeysFieldName(
-        this: Inflection,
-        fieldName: string
-      ): string;
+      filterSingleRelationByKeysBackwardsFieldName(this: Inflection, fieldName: string): string;
+      filterManyRelationByKeysFieldName(this: Inflection, fieldName: string): string;
     }
     interface ScopeInputObject {
       isPgConnectionFilter?: boolean;
       foreignTable?: PgResource<any, any, any, any>;
       isPgConnectionFilterMany?: boolean;
       isOrderByField?: boolean;
-
     }
     interface Build {
       escapeLikeWildcards(input: unknown): string;
@@ -48,9 +36,8 @@ declare global {
     }
   }
 
-
   namespace DataplanPg {
-    interface PgConditionStepExtensions {
+    interface PgConditionExtensions {
       pgFilterAttribute?: /** Filtering a column */
       | {
             attributeName: string;
@@ -66,5 +53,4 @@ declare global {
           };
     }
   }
-
 }

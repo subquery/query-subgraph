@@ -20,13 +20,13 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@graphile/simplify-inflection": "^8.0.0-beta.5",
+    "@graphile/simplify-inflection": "^8.0.0-beta.8",
     "@subql/utils": "^2.14.0",
     "@types/yargs": "^17.0.33",
     "dotenv": "^16.4.5",
     "eslint": "^8.8.0",
     "express": "^4.21.1",
-    "postgraphile": "^5.0.0-beta.28",
+    "postgraphile": "^5.0.0-beta.48",
     "yargs": "latest"
   },
   "devDependencies": {
