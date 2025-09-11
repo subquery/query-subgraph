@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 import { createServer, Server } from 'node:http';
+import cors from 'cors';
 import express from 'express';
 import { grafserv } from 'grafserv/express/v4';
 import { postgraphile } from 'postgraphile';
@@ -21,6 +22,8 @@ export function startServer(args: ArgsInterface): Server {
     }
     next();
   });
+
+  app.use(cors());
 
   const server = createServer(app);
 
