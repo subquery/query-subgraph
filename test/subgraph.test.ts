@@ -186,6 +186,14 @@ describe('subgraph plugin test', () => {
     await pool.end();
   });
 
+  it('can make an OPTIONS request', async () => {
+    const res = await fetch('http://localhost:3001', {
+      method: 'OPTIONS',
+    });
+
+    expect(res.ok).toBeTruthy();
+  });
+
   describe('_meta plugin', () => {
     it('query _meta', async () => {
       await Promise.all([
