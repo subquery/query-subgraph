@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.3.0] - 2025-09-15
 ### Added
 - Cors to the server (#25)
 
@@ -49,7 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support GraphQL query style similar to subgraph.
 
-[Unreleased]: https://github.com/subquery/query-subgraph/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/subquery/query-subgraph/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/subquery/query-subgraph/compare/v0.2.3...v0.3.0
 [0.2.3]: https://github.com/subquery/query-subgraph/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/subquery/query-subgraph/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/subquery/query-subgraph/compare/v0.2.0...v0.2.1
