@@ -71,7 +71,7 @@ jobs:
         uses: ./.github/actions/create-release
         with:
           package-path: .
-          repo-token: ${{ secrets.REPO_TOKEN
+          repo-token: ${{ secrets.REPO_TOKEN }}
 
   prerelease:
     name: Prerelease Publish
@@ -105,7 +105,6 @@ jobs:
         uses: ./.github/actions/create-prerelease
         with:
           package-path: .
-          npm-token: ${{ secrets.NPM_TOKEN }}
 
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
