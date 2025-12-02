@@ -1,6 +1,6 @@
 {
   "name": "@subql/query-subgraph",
-  "version": "0.3.0",
+  "version": "0.3.1-0",
   "main": "index.js",
   "bin": {
     "subql-query-subgraph": "./bin/run"
@@ -67,5 +67,6 @@
     "/dist",
     "/bin"
   ],
-  "packageManager": "yarn@4.12.0"
+  "packageManager": "yarn@4.12.0",
+  "stableVersion": "0.3.0"
 }
